@@ -132,38 +132,20 @@ def main():
     #
 
     #create widgets
-    label1 = tk.Label(root, text="Label 1 [DEBUG]", background="red")
-    label2 = tk.Label(root, text="Label 2 [DEBUG]", background="blue")
-    label3 = tk.Label(root, text="Label 3 [DEBUG]", background="green")
-    label4 = tk.Label(root, text="Label 4 [DEBUG]", background="yellow")
-    label5 = tk.Label(root, text="Label 5 [DEBUG]", background="cyan")
-    label6 = tk.Label(root, text="Label 6 [DEBUG]", background="pink")
-    label7 = tk.Label(root, text="Label 7 [DEBUG]", background="orange")
-    label8 = tk.Label(root, text="Label 8 [DEBUG]", background="purple")
-    label9 = tk.Label(root, text="Label 9 [DEBUG]", background="white")
-    label10 = tk.Label(root, text="Label 10 [DEBUG]", background="black", fg="white")
+    label1 = tk.Label(root, text="Single Data Info [DEBUG]", background="red")
+    label2 = tk.Label(root, text="2D Graphs Field [DEBUG]", background="blue")
+    label3 = tk.Label(root, text="3D Graph Field [DEBUG]", background="yellow")
 
     #configure grid
     root.rowconfigure(0, weight=1, uniform='a')
+    root.rowconfigure(1, weight=4, uniform='a')
     root.columnconfigure(0, weight=2, uniform='a')
-    root.columnconfigure(1, weight=2, uniform='a')
-    root.columnconfigure(2, weight=1, uniform='a')
-    root.columnconfigure(3, weight=1, uniform='a')
-    root.rowconfigure(1, weight=2, uniform='a')
-    root.rowconfigure(2, weight=1, uniform='a')
-    root.rowconfigure(3, weight=1, uniform='a')
+    root.columnconfigure(1, weight=1, uniform='a')
 
     #attach the widgets to their grid positions
-    label1.grid(row = 1, column = 0, sticky="nsew")
-    label2.grid(row = 1, column = 1, columnspan = 3, sticky="nsew")
-    label3.grid(row = 2, column = 0, sticky="nsew")
-    label4.grid(row = 2, column = 1, rowspan = 2, sticky="nsew")
-    label5.grid(row = 2, column = 2, rowspan = 1, sticky="nsew")
-    label6.grid(row = 0, column = 0, columnspan = 4, sticky="nsew")
-    label7.grid(row = 3, column = 0, sticky="nsew")
-    label8.grid(row = 3, column = 3, sticky="nsew")
-    label9.grid(row = 2, column = 3, sticky="nsew")
-    label10.grid(row = 3, column = 2, sticky="nsew")
+    label1.grid(row = 0, column = 0, columnspan = 2, rowspan=1, sticky="nsew")
+    label2.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
+    label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
 
     #
     ###########################################################################################
