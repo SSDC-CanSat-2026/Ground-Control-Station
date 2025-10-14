@@ -132,21 +132,20 @@ def main():
     #
 
     #create widgets
-    label1 = tk.Label(root, text="Label 1", background="red")
-    label2 = tk.Label(root, text="Label 2", background="blue")
-    label3 = tk.Label(root, text="Label 3", background="green")
-    label4 = tk.Label(root, text="Label 4", background="yellow")
+    label1 = tk.Label(root, text="Single Data Info [DEBUG]", background="red")
+    label2 = tk.Label(root, text="2D Graphs Field [DEBUG]", background="blue")
+    label3 = tk.Label(root, text="3D Graph Field [DEBUG]", background="yellow")
 
     #configure grid
-    root.columnconfigure(0, weight=1)
-    root.columnconfigure(1, weight=1)
-    root.rowconfigure(0, weight=1)
-    root.rowconfigure(1, weight=1)
+    root.rowconfigure(0, weight=1, uniform='a')
+    root.rowconfigure(1, weight=4, uniform='a')
+    root.columnconfigure(0, weight=2, uniform='a')
+    root.columnconfigure(1, weight=1, uniform='a')
 
-    label1.grid(row = 0, column = 0, sticky="nsew")
-    label2.grid(row = 0, column = 1, sticky="nsew")
-    label3.grid(row = 1, column = 0, sticky="nsew")
-    label4.grid(row = 1, column = 1, sticky="nsew")
+    #attach the widgets to their grid positions
+    label1.grid(row = 0, column = 0, columnspan = 2, rowspan=1, sticky="nsew")
+    label2.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
+    label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
 
     #
     ###########################################################################################
