@@ -8,6 +8,7 @@ The following steps highlight how to start the code:
 3. When in the the Ground Control directory, install these packages:
   - matplotlib
   - tkinter
+    
 By running the following command:
    - python -m pip install <the package name>
 5. Then run main.py
