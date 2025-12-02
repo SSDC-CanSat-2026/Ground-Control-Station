@@ -58,7 +58,11 @@ def main():
     width = root.winfo_screenwidth() # Gets the screen dimensions
     height = root.winfo_screenheight()
     root.geometry("%dx%d" % (width, height)) # Sets the dimensions of the window to those screen dimensions
-    root.state('zoomed') # Automatically maximizes the Window
+    #Cross Compatible Zoom
+    try:
+        root.wm_attributes("-zoomed",True) # Linux Version of Zoom
+    except tk.TclError:
+        root.state('zoomed') # Default to the Windows Zoom if the linux fails
 
     # Create the main menubar and assign as the root's menu
     menubar = tk.Menu(root)
