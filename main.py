@@ -53,6 +53,7 @@ def main():
     int_packet_loss = 0
     str_packet_loss = f"{int_packet_loss}"
     str_flight_state = f"{'F(LORIDA)'}"
+    str_flight_mode = f"{'DANCE'}"
 
     # Create the main window
     root = tk.Tk()
@@ -96,7 +97,7 @@ def main():
     label4 = tk.Label(root, text="Logos Field [DEBUG]", background="lime", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
 
     # Scalar widgets (Mission Guide G8)
-        # TEAM_ID, MISSION_TIME, TEMPERATURE, GPS_POSITION, PACKET_RCV, PACKET_LOSS, FLIGHT_SOFTWARE_STATE
+        # TEAM_ID, MISSION_TIME, TEMPERATURE, GPS_POSITION, PACKET_RCV, PACKET_LOSS, FLIGHT_STATE, FLIGHT_MODE
             # Stubs
     label_stub_team_id = tk.Label(label1, text="Team ID:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
     label_stub_mission_time = tk.Label(label1, text="Mission Time:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
@@ -104,7 +105,8 @@ def main():
     label_stub_gps_pos = tk.Label(label1, text="GPS:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
     label_stub_packet_rcv = tk.Label(label1, text="Packets Received:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
     label_stub_packet_loss = tk.Label(label1, text="Packets Lost:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-    label_stub_flight_state = tk.Label(label1, text="Flight Software State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_flight_state = tk.Label(label1, text="F.S. State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_flight_mode = tk.Label(label1, text="F.S. Mode:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
             # Values
     label_team_id = tk.Label(label1, text=str(str_team_id), font=FONT_TEXT_BOLD, anchor="center")
     label_mission_time = tk.Label(label1, text=str_mission_time, font=FONT_TEXT_BOLD, anchor="center")
@@ -113,6 +115,7 @@ def main():
     label_packet_rcv = tk.Label(label1, text=str_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
     label_packet_loss = tk.Label(label1, text=str_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
     label_flight_state = tk.Label(label1, text=str_flight_state, font=FONT_TEXT_BOLD, anchor="center")
+    label_flight_mode = tk.Label(label1, text=str_flight_mode, font=FONT_TEXT_BOLD, anchor="center")
             # Command Frame
     label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_DEBUG, fg=COLOR_GATOR_ORANGE, bg=COLOR_BG_GRAY, anchor="center")
     #label_cmd_echo = tk.Label(label1, text=f"Command Echo: {'---'}", font=FONT_TITLE, anchor="center") #This will go into the command frame later
@@ -187,7 +190,8 @@ def main():
     label_stub_gps_pos.grid(row = 0, column = 3, sticky="nsew")
     label_stub_packet_rcv.grid(row = 2, column = 0, sticky="nsew")
     label_stub_packet_loss.grid(row = 2, column = 1, sticky="nsew")
-    label_stub_flight_state.grid(row = 2, column = 2, columnspan = 2, sticky="nsew")
+    label_stub_flight_state.grid(row = 2, column = 2, sticky="nsew")
+    label_stub_flight_mode.grid(row = 2, column = 3, sticky="nsew")
             # Values
     label_team_id.grid(row = 1, column = 0, sticky="nsew")
     label_mission_time.grid(row = 1, column = 1, sticky="nsew")
@@ -195,7 +199,8 @@ def main():
     label_gps_pos.grid(row = 1, column = 3, sticky="nsew")
     label_packet_rcv.grid(row = 3, column = 0, sticky="nsew")
     label_packet_loss.grid(row = 3, column = 1, sticky="nsew")
-    label_flight_state.grid(row = 3, column = 2, columnspan = 2, sticky="nsew")
+    label_flight_state.grid(row = 3, column = 2, sticky="nsew")
+    label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
             # Command Frame
     label_cmd_frame.grid(row = 4, column = 0, columnspan = 4, sticky="nsew")
     #label_cmd_echo.grid(row = 2, column = 2, columnspan = 2, sticky="nsew") #This will go into the command frame later
@@ -215,7 +220,7 @@ def main():
 
     x = (1,2,3,1,5)
 
-    str_plot_names = ["Altitude", "Voltage", "Battery Current", "Accel_R", "Accel_P", "Accel_Y", "Gyro_R", "Gyro_P", "Gyro_Y"]
+    str_plot_names = ["Altitude", "Battery Voltage", "Battery Current", "Accel_R", "Accel_P", "Accel_Y", "Gyro_R", "Gyro_P", "Gyro_Y"]
     for i in range(0,3):
         for j in range(0,3):
             axs[i,j].plot(x)
