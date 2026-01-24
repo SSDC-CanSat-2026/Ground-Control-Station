@@ -2,13 +2,72 @@
 import tkinter as tk
 from tkinter import messagebox
 
-from ctypes import windll
-windll.shcore.SetProcessDpiAwareness(1) # Make the application DPI aware
+import sys
+if (sys.platform == "win32" or sys.platform == "cygwin" or sys.platform == "msys"):
+    # Only set up the DpiAwareness if on Windows, ignore otherwise
+    from ctypes import windll
+    windll.shcore.SetProcessDpiAwareness(1) # Make the application DPI aware
 
 from PIL import Image, ImageTk
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+class TelemetryPacket:
+    TEAM_ID = ""
+    MISSION_TIME = ""
+    PACKET_COUNT = ""
+    MODE = ""
+    STATE = ""
+    ALTITUDE = ""
+    TEMPERATURE = ""
+    PRESSURE = ""
+    VOLTAGE = ""
+    CURRENT = ""
+    GYRO_R = ""
+    GYRO_P = ""
+    GYRO_Y = ""
+    ACCEL_R = ""
+    ACCEL_P = ""
+    ACCEL_Y = ""
+    GPS_TIME = ""
+    GPS_ALTITUDE = ""
+    GPS_LATITUDE = ""
+    GPS_LONGITUDE = ""
+    GPS_SATS = ""
+    CMD_ECHO = ""
+
+    def __init__(self, string):
+        fields = string.split(", ")
+        
+        self.TEAM_ID = fields[0]
+        self.MISSION_TIME = fields[1]
+        self.PACKET_COUNT = fields[2]
+        self.MODE = fields[3]
+        self.STATE = fields[4]
+        self.ALTITUDE = fields[5]
+        self.TEMPERATURE = fields[6]
+        self.PRESSURE = fields[7]
+        self.VOLTAGE = fields[8]
+        self.CURRENT = fields[9]
+        self.GYRO_R = fields[10]
+        self.GYRO_P = fields[11]
+        self.GYRO_Y = fields[12]
+        self.ACCEL_R = fields[13]
+        self.ACCEL_P = fields[14]
+        self.ACCEL_Y = fields[15]
+        self.GPS_TIME = fields[16]
+        self.GPS_ALTITUDE = fields[17]
+        self.GPS_LATITUDE = fields[18]
+        self.GPS_LONGITUDE = fields[19]
+        self.GPS_SATS = fields[20]
+        self.CMD_ECHO = fields[21]
+
+    def output_full_str(self):
+
+        return f"{self.TEAM_ID}, {self.MISSION_TIME}, {self.PACKET_COUNT}, {self.MODE}, {self.STATE}, {self.ALTITUDE}, {self.TEMPERATURE}, {self.PRESSURE}, {self.VOLTAGE}, {self.CURRENT}, {self.GYRO_R}, {self.GYRO_P}, {self.GYRO_Y}, {self.ACCEL_R}, {self.ACCEL_P}, {self.ACCEL_Y}, {self.GPS_TIME}, {self.GPS_ALTITUDE}, {self.GPS_LATITUDE}, {self.GPS_LONGITUDE}, {self.GPS_SATS}, {self.CMD_ECHO}"
+    
 
 
 ########################## Global Variables ##########################
@@ -27,7 +86,11 @@ global FONT_MENU;               FONT_MENU = ("Verdana", 14, "bold")
 global FONT_TEXT_BOLD;          FONT_TEXT_BOLD = ("Verdana", 14, "bold")
 global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "underline")
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
-global TEAM_ID;                 TEAM_ID = "TBD"
+
+# Mission Info Variables
+global TEAM_ID;                 TEAM_ID = "T.B.D."
+
+# Live Variables
 
 ######################################################################
 
@@ -48,6 +111,7 @@ def main():
     int_packet_loss = 0
     str_packet_loss = f"{int_packet_loss}"
     str_flight_state = f"{'F(LORIDA)'}"
+    str_flight_mode = f"{'DANCE'}"
 
     # Create the main window
     root = tk.Tk()
@@ -58,7 +122,11 @@ def main():
     width = root.winfo_screenwidth() # Gets the screen dimensions
     height = root.winfo_screenheight()
     root.geometry("%dx%d" % (width, height)) # Sets the dimensions of the window to those screen dimensions
-    root.state('zoomed') # Automatically maximizes the Window
+    #Cross Compatible Zoom
+    try:
+        root.wm_attributes("-zoomed",True) # Linux Version of Zoom
+    except tk.TclError:
+        root.state('zoomed') # Default to the Windows Zoom if the linux fails
 
     # Create the main menubar and assign as the root's menu
     menubar = tk.Menu(root)
@@ -87,15 +155,16 @@ def main():
     label4 = tk.Label(root, text="Logos Field [DEBUG]", background="lime", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
 
     # Scalar widgets (Mission Guide G8)
-        # TEAM_ID, MISSION_TIME, TEMPERATURE, GPS_POSITION, PACKET_RCV, PACKET_LOSS, FLIGHT_SOFTWARE_STATE
+        # TEAM_ID, MISSION_TIME, TEMPERATURE, GPS_POSITION, PACKET_RCV, PACKET_LOSS, FLIGHT_STATE, FLIGHT_MODE
             # Stubs
-    label_stub_team_id = tk.Label(label1, text="Team ID:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
-    label_stub_mission_time = tk.Label(label1, text="Mission Time:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
-    label_stub_temperature = tk.Label(label1, text="Temp:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
-    label_stub_gps_pos = tk.Label(label1, text="GPS:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
-    label_stub_packet_rcv = tk.Label(label1, text="Packets Received:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
-    label_stub_packet_loss = tk.Label(label1, text="Packets Lost:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
-    label_stub_flight_state = tk.Label(label1, text="Flight Software State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, anchor="center")
+    label_stub_team_id = tk.Label(label1, text="Team ID:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_mission_time = tk.Label(label1, text="Mission Time:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_temperature = tk.Label(label1, text="Temp:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_gps_pos = tk.Label(label1, text="GPS:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_packet_rcv = tk.Label(label1, text="Packets Received:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_packet_loss = tk.Label(label1, text="Packets Lost:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_flight_state = tk.Label(label1, text="F.S. State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+    label_stub_flight_mode = tk.Label(label1, text="F.S. Mode:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
             # Values
     label_team_id = tk.Label(label1, text=str(str_team_id), font=FONT_TEXT_BOLD, anchor="center")
     label_mission_time = tk.Label(label1, text=str_mission_time, font=FONT_TEXT_BOLD, anchor="center")
@@ -104,12 +173,13 @@ def main():
     label_packet_rcv = tk.Label(label1, text=str_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
     label_packet_loss = tk.Label(label1, text=str_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
     label_flight_state = tk.Label(label1, text=str_flight_state, font=FONT_TEXT_BOLD, anchor="center")
+    label_flight_mode = tk.Label(label1, text=str_flight_mode, font=FONT_TEXT_BOLD, anchor="center")
             # Command Frame
-    label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_DEBUG, fg=COLOR_GATOR_ORANGE, anchor="center")
+    label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_DEBUG, fg=COLOR_GATOR_ORANGE, bg=COLOR_BG_GRAY, anchor="center")
     #label_cmd_echo = tk.Label(label1, text=f"Command Echo: {'---'}", font=FONT_TITLE, anchor="center") #This will go into the command frame later
 
     # Plot widgets (Mission Guide G7)
-        # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER, ROTATION_RATES
+        # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER(R,P,Y), ROTATION_RATES(R,P,Y)
     # FUTURE WIDGETS GO HERE
     
 
@@ -178,7 +248,8 @@ def main():
     label_stub_gps_pos.grid(row = 0, column = 3, sticky="nsew")
     label_stub_packet_rcv.grid(row = 2, column = 0, sticky="nsew")
     label_stub_packet_loss.grid(row = 2, column = 1, sticky="nsew")
-    label_stub_flight_state.grid(row = 2, column = 2, columnspan = 2, sticky="nsew")
+    label_stub_flight_state.grid(row = 2, column = 2, sticky="nsew")
+    label_stub_flight_mode.grid(row = 2, column = 3, sticky="nsew")
             # Values
     label_team_id.grid(row = 1, column = 0, sticky="nsew")
     label_mission_time.grid(row = 1, column = 1, sticky="nsew")
@@ -186,7 +257,8 @@ def main():
     label_gps_pos.grid(row = 1, column = 3, sticky="nsew")
     label_packet_rcv.grid(row = 3, column = 0, sticky="nsew")
     label_packet_loss.grid(row = 3, column = 1, sticky="nsew")
-    label_flight_state.grid(row = 3, column = 2, columnspan = 2, sticky="nsew")
+    label_flight_state.grid(row = 3, column = 2, sticky="nsew")
+    label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
             # Command Frame
     label_cmd_frame.grid(row = 4, column = 0, columnspan = 4, sticky="nsew")
     #label_cmd_echo.grid(row = 2, column = 2, columnspan = 2, sticky="nsew") #This will go into the command frame later
@@ -199,14 +271,20 @@ def main():
     ###########################
     #
 
+    fig, axs = plt.subplots(3, 3, figsize=(20, 15), constrained_layout=True)  # 16 graphs in a 4x4 grid
+    fig.patch.set_facecolor(COLOR_BG_GRAY)
+    canvas = FigureCanvasTkAgg(fig, master=label2)
+    canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
+
+    x = (1,2,3,1,5)
+
+    str_plot_names = ["Altitude", "Battery Voltage", "Battery Current", "Accel_R", "Accel_P", "Accel_Y", "Gyro_R", "Gyro_P", "Gyro_Y"]
+    for i in range(0,3):
+        for j in range(0,3):
+            axs[i,j].plot(x)
+            axs[i,j].set_title(str_plot_names[i*3+j])
+
     '''
-
-    root2 = tk.Tk()
-
-    root2.rowconfigure(0, weight=1, uniform='a')
-    root2.columnconfigure(0, weight=1, uniform='a')
-
-    '' '
     def send_command():
         #nonlocal CMD_ECHO
         nonlocal cmd_echo_label
@@ -215,72 +293,7 @@ def main():
         print(f"[DEBUG] Send Command Function go! '{cmd_entry.get()}'")
         #cmd_echo_label.config(text=f"Command Echo: {CMD_ECHO}")
         cmd_echo_label.config(text=f"Command Echo: {commandEcho(cmd_entry.get())}")
-    '' '
-
-    # Make the master label
-    master_temp_label = tk.Label(root2, text="testing :3", font=FONT_TITLE, background=COLOR_GATOR_GREEN, highlightthickness=0, borderwidth=0)
-
-    # Make all the readout widgets
-
-    # Make all the readout variables
-    str_team_id = f"Team ID: {TEAM_ID}"
-    str_mission_time = f"Mission Time: {'--:--:--'}"
-    str_temperature = f"Temp: {'WARM'}"
-    tup_gps_pos = (1,1,1)
-    str_gps_pos = f"GPS: {tup_gps_pos}"
-    int_packet_rcv = 0
-    str_packet_rcv = f"Packets Received: {int_packet_rcv}"
-    int_packet_loss = 0
-    str_packet_loss = f"Packets Lost: {int_packet_loss}"
-    str_flight_state = f"Flight Software State: {'F(LORIDA)'}"
-
-
-    # Scalar widgets (Mission Guide G8)
-        # TEAM_ID, MISSION_TIME, TEMPERATURE, GPS_POSITION, PACKET_RCV, PACKET_LOSS, FLIGHT_SOFTWARE_STATE
-    label_team_id = tk.Label(master_temp_label, text=str_team_id, font=FONT_TITLE, anchor="w")
-    label_mission_time = tk.Label(master_temp_label, text=str_mission_time, font=FONT_TITLE, anchor="w")
-    label_temperature = tk.Label(master_temp_label, text=str_temperature, font=FONT_TITLE, anchor="e")
-    label_gps_pos = tk.Label(master_temp_label, text=str_gps_pos, font=FONT_TITLE, anchor="e")
-    label_packet_rcv = tk.Label(master_temp_label, text=str_packet_rcv, font=FONT_TITLE, anchor="w")
-    label_packet_loss = tk.Label(master_temp_label, text=str_packet_loss, font=FONT_TITLE, anchor="w")
-    label_flight_state = tk.Label(master_temp_label, text=str_flight_state, font=FONT_TITLE, anchor="e")
-    label_cmd_frame = tk.Label(master_temp_label, text="CMD FRAME [DEBUG]", font=FONT_TITLE, anchor="center")
-
-
-    # Plot widgets (Mission Guide G7)
-        # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER, ROTATION_RATES
-
-
-
-
-    #cmd_echo_label = tk.Label(cmd_frame, text=f"Command Echo: {'---'}", font=FONT_TITLE, bg="#FF6060", fg=COLOR_GATOR_ORANGE)
-
-    # Build a 4x3 Grid
-    master_temp_label.rowconfigure(0, weight=1, uniform='a')
-    master_temp_label.rowconfigure(1, weight=1, uniform='a')
-    master_temp_label.rowconfigure(2, weight=1, uniform='a')
-    master_temp_label.columnconfigure(0, weight=1, uniform='a')
-    master_temp_label.columnconfigure(1, weight=1, uniform='a')
-    master_temp_label.columnconfigure(2, weight=1, uniform='a')
-    master_temp_label.columnconfigure(3, weight=1, uniform='a')
-
-
-
-    # Attach all the widgets
-    master_temp_label.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
-    label_team_id.grid(row = 0, column = 0, sticky="nsew")
-    label_mission_time.grid(row = 0, column = 1, sticky="nsew")
-    label_temperature.grid(row = 0, column = 2, sticky="nsew")
-    label_gps_pos.grid(row = 0, column = 3, sticky="nsew")
-    label_packet_rcv.grid(row = 1, column = 0, sticky="nsew")
-    label_packet_loss.grid(row = 1, column = 1, sticky="nsew")
-    label_flight_state.grid(row = 1, column = 2, columnspan = 2, sticky="nsew")
-    label_cmd_frame.grid(row = 2, column = 0, columnspan = 4, sticky="nsew")
-
-    '''
     
-    '''
-
     # Update CMD label, entry, and button to center them above the graphs
     cmd_frame = tk.Frame(master_temp_label, bg="#FF9797")  # Create a frame to contain the CMD controls
     
@@ -308,49 +321,15 @@ def main():
     send_button = tk.Button(cmd_frame, text="Send", font=FONT_TITLE, command=send_command, bg="#FF0000")
     send_button.grid(row=0, column=3, padx=0, sticky="nsew")
 
-
-
-
-
-
-
-    # Create mission time label
-    mission_time_label = tk.Label(master_temp_label, text="--:--:--", font=FONT_TITLE, bg="#FFFC47", fg=COLOR_GATOR_ORANGE)
-    mission_time_label.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-
-    # Create Team ID label
-    team_id_label = tk.Label(master_temp_label, text="Team ID: 3174", font=FONT_TITLE, bg="#7EFF47", fg=COLOR_GATOR_ORANGE)
-    team_id_label.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
-
-    # Create Packet Count label
-    packet_count_label = tk.Label(master_temp_label, text="Packet Count: 0", font=FONT_TITLE, bg="#00A824", fg=COLOR_GATOR_ORANGE)
-    packet_count_label.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
-
-    # Create Mode label
-    mode_label = tk.Label(master_temp_label, text="Mode: IDLE", font=FONT_TITLE, bg="#47EDFF", fg=COLOR_GATOR_ORANGE)
-    mode_label.grid(row=0, column=3, padx=5, pady=5, sticky="nsew")
-
-    # Create State label
-    state_label = tk.Label(master_temp_label, text="State: OK", font=FONT_TITLE, bg="#5347FF", fg=COLOR_GATOR_ORANGE)
-    state_label.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-
-    # Create Labels for Simulation States
-    sim_enable_label = tk.Label(master_temp_label, text="Sim Enable: False", font=FONT_TITLE, bg="#AF47FF", fg=COLOR_GATOR_ORANGE)
-    sim_enable_label.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
-    sim_active_label = tk.Label(master_temp_label, text="Sim Active: False", font=FONT_TITLE, bg="#FF47A3", fg=COLOR_GATOR_ORANGE)
-    sim_active_label.grid(row=1, column=3, padx=5, pady=5, sticky="nsew")
-
-    # Create GPS time label
-    gps_time_label = tk.Label(master_temp_label, text="--:--:--", font=FONT_TITLE, bg="#780046", fg=COLOR_GATOR_ORANGE)
-    gps_time_label.grid(row=1, column=0, padx=5, sticky="nsew")
+    '''
 
     #
     ###########################################################################################
 
-    '''
-
     # Start the Tkinter event loop
     root.mainloop()
+
+    print("Hello")
 
     return
 
