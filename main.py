@@ -39,7 +39,7 @@ class TelemetryPacket:
     CMD_ECHO = ""
 
     def __init__(self, string):
-        fields = string.split(", ")
+        fields = string.split(",")
         
         self.TEAM_ID = fields[0]
         self.MISSION_TIME = fields[1]
@@ -64,9 +64,9 @@ class TelemetryPacket:
         self.GPS_SATS = fields[20]
         self.CMD_ECHO = fields[21]
 
-    def output_full_str(self):
+    def get_str(self):
 
-        return f"{self.TEAM_ID}, {self.MISSION_TIME}, {self.PACKET_COUNT}, {self.MODE}, {self.STATE}, {self.ALTITUDE}, {self.TEMPERATURE}, {self.PRESSURE}, {self.VOLTAGE}, {self.CURRENT}, {self.GYRO_R}, {self.GYRO_P}, {self.GYRO_Y}, {self.ACCEL_R}, {self.ACCEL_P}, {self.ACCEL_Y}, {self.GPS_TIME}, {self.GPS_ALTITUDE}, {self.GPS_LATITUDE}, {self.GPS_LONGITUDE}, {self.GPS_SATS}, {self.CMD_ECHO}"
+        return f"{self.TEAM_ID},{self.MISSION_TIME},{self.PACKET_COUNT},{self.MODE},{self.STATE},{self.ALTITUDE},{self.TEMPERATURE},{self.PRESSURE},{self.VOLTAGE},{self.CURRENT},{self.GYRO_R},{self.GYRO_P},{self.GYRO_Y},{self.ACCEL_R},{self.ACCEL_P},{self.ACCEL_Y},{self.GPS_TIME},{self.GPS_ALTITUDE},{self.GPS_LATITUDE},{self.GPS_LONGITUDE},{self.GPS_SATS},{self.CMD_ECHO}"
     
 
 
