@@ -32,6 +32,61 @@ global TEAM_ID;                 TEAM_ID = "1075"
 
 ######################################################################
 
+class TelemetryPacket:
+    TEAM_ID = ""
+    MISSION_TIME = ""
+    PACKET_COUNT = ""
+    MODE = ""
+    STATE = ""
+    ALTITUDE = ""
+    TEMPERATURE = ""
+    PRESSURE = ""
+    VOLTAGE = ""
+    CURRENT = ""
+    GYRO_R = ""
+    GYRO_P = ""
+    GYRO_Y = ""
+    ACCEL_R = ""
+    ACCEL_P = ""
+    ACCEL_Y = ""
+    GPS_TIME = ""
+    GPS_ALTITUDE = ""
+    GPS_LATITUDE = ""
+    GPS_LONGITUDE = ""
+    GPS_SATS = ""
+    CMD_ECHO = ""
+
+    def __init__(self, string):
+        fields = string.split(",")
+        
+        self.TEAM_ID = fields[0]
+        self.MISSION_TIME = fields[1]
+        self.PACKET_COUNT = fields[2]
+        self.MODE = fields[3]
+        self.STATE = fields[4]
+        self.ALTITUDE = fields[5]
+        self.TEMPERATURE = fields[6]
+        self.PRESSURE = fields[7]
+        self.VOLTAGE = fields[8]
+        self.CURRENT = fields[9]
+        self.GYRO_R = fields[10]
+        self.GYRO_P = fields[11]
+        self.GYRO_Y = fields[12]
+        self.ACCEL_R = fields[13]
+        self.ACCEL_P = fields[14]
+        self.ACCEL_Y = fields[15]
+        self.GPS_TIME = fields[16]
+        self.GPS_ALTITUDE = fields[17]
+        self.GPS_LATITUDE = fields[18]
+        self.GPS_LONGITUDE = fields[19]
+        self.GPS_SATS = fields[20]
+        self.CMD_ECHO = fields[21]
+
+    def get_str(self):
+
+        return f"{self.TEAM_ID},{self.MISSION_TIME},{self.PACKET_COUNT},{self.MODE},{self.STATE},{self.ALTITUDE},{self.TEMPERATURE},{self.PRESSURE},{self.VOLTAGE},{self.CURRENT},{self.GYRO_R},{self.GYRO_P},{self.GYRO_Y},{self.ACCEL_R},{self.ACCEL_P},{self.ACCEL_Y},{self.GPS_TIME},{self.GPS_ALTITUDE},{self.GPS_LATITUDE},{self.GPS_LONGITUDE},{self.GPS_SATS},{self.CMD_ECHO}"
+
+
 class App(tk.Tk):
   
     # Make all the readout variables
@@ -242,6 +297,13 @@ class App(tk.Tk):
         label_gators_logo.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         label_ssdc_logo.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
 
+        # Set up the socket for packet retrieval
+        address = ('localhost', 6000)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind(address)
+        self.sock.listen(0)
+        self.tk.createfilehandler(self.sock, tk.READABLE | tk.WRITABLE, self.recv_msg_callback)
+
         # Finally we set the app icon on the way out
         imageFile_ssdc_icon = Image.open("Images/SSDC Icon.png")
         iconTk_ssdc = ImageTk.PhotoImage(imageFile_ssdc_icon)
@@ -274,6 +336,15 @@ class App(tk.Tk):
             "Bon Appétit",
             "🍟"
         )
+
+
+    def cmd_entry_enter_callback(self, event):
+
+        self.label_cmd_entry.config(fg="black")
+
+        if self.int_cmd_entry_state == 1:
+            self.int_cmd_entry_state = 0
+            self.label_cmd_entry.delete(0, tk.END)
 
     def cmd_button_callback(self):
 
@@ -330,11 +401,29 @@ class App(tk.Tk):
                 
         return
 
-    def cmd_entry_enter_callback(self, event):
+    # This callback function currently only reads one packet before closing the client connection so the client has to re-connect for every packet sent
+    def recv_msg_callback(self, sock, mask):
+        
+        # Set up the client connection
+        client_socket, client_address = sock.accept()
+        print(f"Accepted connection from {client_address[0]}:{client_address[1]}")
 
-        self.label_cmd_entry.config(fg="black")
+        # Read in a message from the client
+        msg = client_socket.recv(1024)
+        msg = msg.decode("utf-8") # convert bytes to string
 
-        if self.int_cmd_entry_state == 1:
-            self.int_cmd_entry_state = 0
-            self.label_cmd_entry.delete(0, tk.END)
+        # Print the msg to the terminal and start parsing it with the TelemetryPacket class
+        print(f"Received: {msg}\n")
+        pkt = TelemetryPacket(msg)
 
+        if pkt.TEAM_ID != TEAM_ID:
+            print(f"Someone Else's Packet Received: {msg}\n")
+
+        # Update the Packet Recieved/Lost Widget
+        self.int_packet_rcv += 1
+        self.label_packet_rcv.config(text=self.int_packet_rcv)
+        self.int_packet_loss = int(pkt.PACKET_COUNT) - self.int_packet_rcv
+        self.label_packet_loss.config(text=self.int_packet_loss)
+
+        # Close the connection
+        client_socket.close()

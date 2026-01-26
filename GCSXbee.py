@@ -226,8 +226,6 @@ class TelemetryHandler:
                     line = line + xbee_message.data.decode('utf-8').strip()  # Append the next message data
                     data = line.split(',')
 
-                    print(line)
-
                     # Because we could not get the GPS to work, we have to fake all of the GPS data.
                     # This includes GPS time, but it is easier to do that here in the GCS. Whoopsies.
                     current_time = datetime.now(timezone.utc).strftime('%H:%M:%S')
