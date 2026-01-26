@@ -151,12 +151,12 @@ class App(tk.Tk):
         # Load UF gator logo image data and create widget for it
         imageFile_gators = Image.open("Images/Gators Logo.png")
         imageTk_gators = ImageTk.PhotoImage(imageFile_gators)
-        label_gators_logo = tk.Label(label4, image=imageTk_gators, background=COLOR_GATOR_GREEN)
+        label_gators_logo = tk.Label(label4, image=imageTk_gators, background=COLOR_BG_GRAY)
 
         # Load SSDC logo image data and create widget for it
-        imageFile_ssdc = Image.open("Images/SSDC Logo green.png")
+        imageFile_ssdc = Image.open("Images/SSDC Logo Round.png")
         imageTk_ssdc = ImageTk.PhotoImage(imageFile_ssdc)
-        label_ssdc_logo = tk.Label(label4, image=imageTk_ssdc, background=COLOR_GATOR_GREEN)
+        label_ssdc_logo = tk.Label(label4, image=imageTk_ssdc, background=COLOR_BG_GRAY)
 
         # Define a resize function for the gator logo
         def eventFunc_imageTk_gators_resize(event):
