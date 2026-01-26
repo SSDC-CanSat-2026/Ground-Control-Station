@@ -13,6 +13,7 @@ import socket
 
 # Colors and Fonts for Blue and Orange Theme
 global COLOR_BG_GRAY;           COLOR_BG_GRAY = '#F0F0F0'               # Light gray
+#global COLOR_BG_CREAM;           COLOR_BG_CREAM = '#FFF7F0'               # Light Orange
 global COLOR_GATOR_ORANGE;      COLOR_GATOR_ORANGE = "#FA4616"          # Gator Orange
 global COLOR_GATOR_BLUE;        COLOR_GATOR_BLUE = "#0021A5"            # Gator Blue
 global COLOR_GATOR_GREEN;       COLOR_GATOR_GREEN = "#22884C"           # Gator Green
@@ -27,7 +28,7 @@ global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
 
 # Mission Info Variables
-global TEAM_ID;                 TEAM_ID = "T.B.D."
+global TEAM_ID;                 TEAM_ID = "1075"
 
 ######################################################################
 
@@ -45,6 +46,8 @@ class App(tk.Tk):
     str_packet_loss = f"{int_packet_loss}"
     str_flight_state = f"{'F(LORIDA)'}"
     str_flight_mode = f"{'DANCE'}"
+    str_cmd_echo = ""
+    int_cmd_entry_state = 0
 
     graphdata = [
         list([]),    # altitude
@@ -120,13 +123,29 @@ class App(tk.Tk):
         self.label_packet_loss = tk.Label(label1, text=self.str_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
         label_flight_state = tk.Label(label1, text=self.str_flight_state, font=FONT_TEXT_BOLD, anchor="center")
         label_flight_mode = tk.Label(label1, text=self.str_flight_mode, font=FONT_TEXT_BOLD, anchor="center")
-                # Command Frame
-        label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_DEBUG, fg=COLOR_GATOR_ORANGE, bg=COLOR_BG_GRAY, anchor="center")
-        #label_cmd_echo = tk.Label(label1, text=f"Command Echo: {'---'}", font=FONT_TITLE, anchor="center") #This will go into the command frame later
+                # Command Frame Pieces
+        label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_cmd = tk.Label(label_cmd_frame, text="Command Input:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        self.label_cmd_entry = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20)
+        label_cmd_button = tk.Button(label_cmd_frame, text="Send", font=FONT_TITLE, bg=COLOR_BG_GRAY, command=self.cmd_button_callback)
+        label_stub_echo = tk.Label(label_cmd_frame, text="Command Echo:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        self.label_cmd_echo = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20, state="disabled")
+        
+        # Bind the FocusIn callback to the entry field to remove the feedback messages I print in their
+        self.label_cmd_entry.bind("<FocusIn>", self.cmd_entry_enter_callback)
 
         # Plot widgets (Mission Guide G7)
             # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER(R,P,Y), ROTATION_RATES(R,P,Y)
-        # FUTURE WIDGETS GO HERE
+        self.fig, self.axs = plt.subplots(3, 3, figsize=(20, 15), constrained_layout=True)  # 16 graphs in a 4x4 grid
+        self.fig.patch.set_facecolor(COLOR_BG_GRAY)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=label2)
+        self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
+
+        self.str_plot_names = ["Altitude", "Battery Voltage", "Battery Current", "Accel_R", "Accel_P", "Accel_Y", "Gyro_R", "Gyro_P", "Gyro_Y"]
+        for i in range(0,3):
+            for j in range(0,3):
+                self.axs[i,j].set_title(self.str_plot_names[i*3+j])
+        #self.update_graphs_callback()
         
 
         # Load UF gator logo image data and create widget for it
@@ -175,6 +194,13 @@ class App(tk.Tk):
         label1.columnconfigure(1, weight=1, uniform='a')
         label1.columnconfigure(2, weight=1, uniform='a')
         label1.columnconfigure(3, weight=1, uniform='a')
+            # Cmd Frame (Command Pieces) Layout
+        label_cmd_frame.rowconfigure(0, weight=1, uniform='a')
+        label_cmd_frame.columnconfigure(0, weight=1, uniform='a')
+        label_cmd_frame.columnconfigure(1, weight=1, uniform='a')
+        label_cmd_frame.columnconfigure(2, weight=1, uniform='a')
+        label_cmd_frame.columnconfigure(3, weight=1, uniform='a')
+        label_cmd_frame.columnconfigure(4, weight=1, uniform='a')
             # Label 4 (Logos) Layout
         label4.rowconfigure(0, weight=1, uniform='a')
         label4.columnconfigure(0, weight=1, uniform='a')
@@ -183,8 +209,8 @@ class App(tk.Tk):
         # Attach the widgets to their grid positions
             # Root labels
         label1.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
-        label2.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
-        label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
+        label2.grid(row = 1, column = 0, columnspan = 2, rowspan=1, sticky="nsew")
+        #label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
         label4.grid(row = 0, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
             # Scalar Status labels
                 # Stubs
@@ -207,21 +233,14 @@ class App(tk.Tk):
         label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
                 # Command Frame
         label_cmd_frame.grid(row = 4, column = 0, columnspan = 4, sticky="nsew")
-        #label_cmd_echo.grid(row = 2, column = 2, columnspan = 2, sticky="nsew") #This will go into the command frame later
+        label_stub_cmd.grid(row=0, column=0, sticky="nsew")
+        self.label_cmd_entry.grid(row=0, column=1, sticky="nsew")
+        label_cmd_button.grid(row=0, column=2, sticky="nsew")
+        label_stub_echo.grid(row=0, column=3, sticky="nsew")
+        self.label_cmd_echo.grid(row=0, column=4, sticky="nsew")
             # Logo labels
         label_gators_logo.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         label_ssdc_logo.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
-
-        self.fig, self.axs = plt.subplots(3, 3, figsize=(20, 15), constrained_layout=True)  # 16 graphs in a 4x4 grid
-        self.fig.patch.set_facecolor(COLOR_BG_GRAY)
-        self.canvas = FigureCanvasTkAgg(self.fig, master=label2)
-        self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
-
-        self.str_plot_names = ["Altitude", "Battery Voltage", "Battery Current", "Accel_R", "Accel_P", "Accel_Y", "Gyro_R", "Gyro_P", "Gyro_Y"]
-        for i in range(0,3):
-            for j in range(0,3):
-                self.axs[i,j].set_title(self.str_plot_names[i*3+j])
-        self.update_graphs_callback()
 
         # Finally we set the app icon on the way out
         imageFile_ssdc_icon = Image.open("Images/SSDC Icon.png")
@@ -247,11 +266,75 @@ class App(tk.Tk):
     def menuFunc_burger(self):
         messagebox.showinfo(
             "Bon Appétit",
-            "\t🍔\t"
+            "🍔"
         )
 
     def menuFunc_fries(self):
         messagebox.showinfo(
             "Bon Appétit",
-            "\t🍟\t"
+            "🍟"
         )
+
+    def cmd_button_callback(self):
+
+        self.focus_force()
+
+        cmd_str = self.label_cmd_entry.get()
+        self.label_cmd_entry.delete(0, tk.END)
+
+        if self.int_cmd_entry_state == 1:
+            self.int_cmd_entry_state = 0
+            self.label_cmd_entry.delete(0, tk.END)
+            self.label_cmd_entry.config(fg="black")
+        else:
+            match(cmd_str):
+                case "CXON":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "CXOFF":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "ST":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "SIM":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "SIMP":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "CAL":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "MEC":
+                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case _:
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="red")
+                    self.label_cmd_entry.insert(0, "INVALID COMMAND")
+                
+        return
+
+    def cmd_entry_enter_callback(self, event):
+
+        self.label_cmd_entry.config(fg="black")
+
+        if self.int_cmd_entry_state == 1:
+            self.int_cmd_entry_state = 0
+            self.label_cmd_entry.delete(0, tk.END)
+
