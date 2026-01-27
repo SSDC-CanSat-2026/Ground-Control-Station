@@ -91,18 +91,9 @@ class TelemetryPacket:
 class App(tk.Tk):
   
     # Make all the readout variables
-    str_team_id = f"{TEAM_ID}"
-    str_mission_time = f"{'--:--:--'}"
-    str_temperature = f"{'WARM'}"
-    tup_gps_pos = (1,1,1)
-    str_gps_pos = f"{tup_gps_pos}"
-    int_packet_rcv = 0
-    str_packet_rcv = f"{int_packet_rcv}"
+    master_pkt = TelemetryPacket(f"{TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
+    int_packet_rcv = int(master_pkt.PACKET_COUNT)
     int_packet_loss = 0
-    str_packet_loss = f"{int_packet_loss}"
-    str_flight_state = f"{'F(LORIDA)'}"
-    str_flight_mode = f"{'DANCE'}"
-    str_cmd_echo = ""
     int_cmd_entry_state = 0
 
     graphdata = [
@@ -171,14 +162,14 @@ class App(tk.Tk):
         label_stub_flight_state = tk.Label(label1, text="Flight State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_flight_mode = tk.Label(label1, text="Flight Mode:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
                 # Values
-        label_team_id = tk.Label(label1, text=str(self.str_team_id), font=FONT_TEXT_BOLD, anchor="center")
-        self.label_mission_time = tk.Label(label1, text=self.str_mission_time, font=FONT_TEXT_BOLD, anchor="center")
-        label_temperature = tk.Label(label1, text=self.str_temperature, font=FONT_TEXT_BOLD, anchor="center")
-        label_gps_pos = tk.Label(label1, text=self.str_gps_pos, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_packet_rcv = tk.Label(label1, text=self.str_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_packet_loss = tk.Label(label1, text=self.str_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
-        label_flight_state = tk.Label(label1, text=self.str_flight_state, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_flight_mode = tk.Label(label1, text=self.str_flight_mode, font=FONT_TEXT_BOLD, anchor="center")
+        label_team_id = tk.Label(label1, text=str(self.master_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
+        self.label_mission_time = tk.Label(label1, text=self.master_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_temperature = tk.Label(label1, text=self.master_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_gps_pos = tk.Label(label1, text=f"{(int(self.master_pkt.GPS_ALTITUDE),int(self.master_pkt.GPS_LATITUDE),int(self.master_pkt.GPS_LONGITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
+        self.label_packet_rcv = tk.Label(label1, text=self.int_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_packet_loss = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_state = tk.Label(label1, text=self.master_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_mode = tk.Label(label1, text=self.master_pkt.MODE, font=FONT_TEXT_BOLD, anchor="center")
                 # Command Frame Pieces
         label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_cmd = tk.Label(label_cmd_frame, text="Command Input:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
@@ -279,11 +270,11 @@ class App(tk.Tk):
                 # Values
         label_team_id.grid(row = 1, column = 0, sticky="nsew")
         self.label_mission_time.grid(row = 1, column = 1, sticky="nsew")
-        label_temperature.grid(row = 1, column = 2, sticky="nsew")
-        label_gps_pos.grid(row = 1, column = 3, sticky="nsew")
+        self.label_temperature.grid(row = 1, column = 2, sticky="nsew")
+        self.label_gps_pos.grid(row = 1, column = 3, sticky="nsew")
         self.label_packet_rcv.grid(row = 3, column = 0, sticky="nsew")
         self.label_packet_loss.grid(row = 3, column = 1, sticky="nsew")
-        label_flight_state.grid(row = 3, column = 2, sticky="nsew")
+        self.label_flight_state.grid(row = 3, column = 2, sticky="nsew")
         self.label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
                 # Command Frame
         label_cmd_frame.grid(row = 4, column = 0, columnspan = 4, sticky="nsew")
@@ -432,6 +423,8 @@ class App(tk.Tk):
         #   GYRO_Y, ACCEL_R, ACCEL_P, ACCEL_Y, GPS_TIME, GPS_ALTITUDE,
         #   GPS_LATITUDE, GPS_LONGITUDE, GPS_SATS, CMD_ECHO [,,OPTIONAL_DATA]
 
+        self.master_pkt = pkt
+
         # Mission Time
         self.label_mission_time.config(text=pkt.MISSION_TIME)
 
@@ -444,13 +437,13 @@ class App(tk.Tk):
         # Flight Mode
         self.label_flight_mode.config(text=pkt.MODE)
 
-        # FIXME: Do all the data
-        # .
-        # .
-        # .
-        # .
-        # .
+        # Flight State
+        self.label_flight_state.config(text=pkt.STATE)
 
+        # Temperature
+        self.label_temperature.config(text=pkt.TEMPERATURE)
+
+        # Voltage, Current, Gyro (RPY), Altitude (RPY)
         self.insert_graph_data(
             list([float(pkt.ALTITUDE),
             float(pkt.VOLTAGE),
@@ -464,12 +457,8 @@ class App(tk.Tk):
         )
         self.update_graphs_callback()
 
-        # FIXME: Do all the data
-        # .
-        # .
-        # .
-        # .
-        # .
+        # GPS Location
+        self.label_gps_pos.config(text=f"{(int(pkt.GPS_ALTITUDE),int(pkt.GPS_LATITUDE),int(pkt.GPS_LONGITUDE))}")
 
         # Command Echo
         self.label_cmd_echo.config(state="normal")
@@ -493,7 +482,6 @@ class App(tk.Tk):
                 self.axs[i,j].set_title(self.str_plot_names[i*3+j])
                 self.axs[i,j].plot(self.graphdata[i*3+j])
         self.canvas.draw()
-        #self.axs[0,0].set_title(random.randint(1,100))
         return
 
     def demo_graph_print(self):
