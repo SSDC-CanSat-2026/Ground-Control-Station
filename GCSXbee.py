@@ -236,8 +236,8 @@ class TelemetryHandler:
                         
                         # FIXME: DO some formatting later
                         # Write to CSV file
-                        self.csv_writer.writerow(data)
-                        self.csv_file.flush()  # Ensure data is written to disk
+                        #self.csv_writer.writerow(data)
+                        #self.csv_file.flush()  # Ensure data is written to disk
 
                         # Write to the socket instead 
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

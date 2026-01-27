@@ -28,7 +28,8 @@ global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
 
 # Mission Info Variables
-global TEAM_ID;                 TEAM_ID = "1075"
+#global TEAM_ID;                 TEAM_ID = "1075"
+global TEAM_ID;                 TEAM_ID = "3174"
 
 ######################################################################
 
@@ -177,14 +178,14 @@ class App(tk.Tk):
         self.label_packet_rcv = tk.Label(label1, text=self.str_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_loss = tk.Label(label1, text=self.str_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
         label_flight_state = tk.Label(label1, text=self.str_flight_state, font=FONT_TEXT_BOLD, anchor="center")
-        label_flight_mode = tk.Label(label1, text=self.str_flight_mode, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_mode = tk.Label(label1, text=self.str_flight_mode, font=FONT_TEXT_BOLD, anchor="center")
                 # Command Frame Pieces
         label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_cmd = tk.Label(label_cmd_frame, text="Command Input:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_entry = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20)
         label_cmd_button = tk.Button(label_cmd_frame, text="Send", font=FONT_TITLE, bg=COLOR_BG_GRAY, command=self.cmd_button_callback)
         label_stub_echo = tk.Label(label_cmd_frame, text="Command Echo:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        self.label_cmd_echo = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20, state="disabled")
+        self.label_cmd_echo = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20, state="readonly")
         
         # Bind the FocusIn callback to the entry field to remove the feedback messages I print in their
         self.label_cmd_entry.bind("<FocusIn>", self.cmd_entry_enter_callback)
@@ -285,7 +286,7 @@ class App(tk.Tk):
         self.label_packet_rcv.grid(row = 3, column = 0, sticky="nsew")
         self.label_packet_loss.grid(row = 3, column = 1, sticky="nsew")
         label_flight_state.grid(row = 3, column = 2, sticky="nsew")
-        label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
+        self.label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
                 # Command Frame
         label_cmd_frame.grid(row = 4, column = 0, columnspan = 4, sticky="nsew")
         label_stub_cmd.grid(row=0, column=0, sticky="nsew")
@@ -314,9 +315,11 @@ class App(tk.Tk):
     def __del__(self):
         self.tk.deletefilehandler(self.sock)
         self.sock.close()
+        return
 
     def menuFunc_exit(self):
         exit()
+        return
 
     def menuFunc_about(self): #TODO: Fill in text here with proper info
         messagebox.showinfo(
@@ -330,12 +333,14 @@ class App(tk.Tk):
             "Bon Appétit",
             "🍔"
         )
+        return
 
     def menuFunc_fries(self):
         messagebox.showinfo(
             "Bon Appétit",
             "🍟"
         )
+        return
 
 
     def cmd_entry_enter_callback(self, event):
@@ -345,6 +350,7 @@ class App(tk.Tk):
         if self.int_cmd_entry_state == 1:
             self.int_cmd_entry_state = 0
             self.label_cmd_entry.delete(0, tk.END)
+        return
 
     def cmd_button_callback(self):
 
@@ -412,6 +418,9 @@ class App(tk.Tk):
         msg = client_socket.recv(1024)
         msg = msg.decode("utf-8") # convert bytes to string
 
+        # Close the connection
+        client_socket.close()
+
         # Print the msg to the terminal and start parsing it with the TelemetryPacket class
         print(f"Received: {msg}\n")
         pkt = TelemetryPacket(msg)
@@ -419,11 +428,89 @@ class App(tk.Tk):
         if pkt.TEAM_ID != TEAM_ID:
             print(f"Someone Else's Packet Received: {msg}\n")
 
-        # Update the Packet Recieved/Lost Widget
+        # Process the new data
+        #   TEAM_ID, MISSION_TIME, PACKET_COUNT, MODE, STATE, ALTITUDE,
+        #   TEMPERATURE, PRESSURE, VOLTAGE, CURRENT, GYRO_R, GYRO_P,
+        #   GYRO_Y, ACCEL_R, ACCEL_P, ACCEL_Y, GPS_TIME, GPS_ALTITUDE,
+        #   GPS_LATITUDE, GPS_LONGITUDE, GPS_SATS, CMD_ECHO [,,OPTIONAL_DATA]
+
+        # Mission Time
+        self.label_mission_time.config(text=pkt.MISSION_TIME)
+
+        # Packet Count
         self.int_packet_rcv += 1
         self.label_packet_rcv.config(text=self.int_packet_rcv)
         self.int_packet_loss = int(pkt.PACKET_COUNT) - self.int_packet_rcv
         self.label_packet_loss.config(text=self.int_packet_loss)
 
-        # Close the connection
-        client_socket.close()
+        # Flight Mode
+        self.label_flight_mode.config(text=pkt.MODE)
+
+        # FIXME: Do all the data
+        # .
+        # .
+        # .
+        # .
+        # .
+
+        self.insert_graph_data(
+            list([float(pkt.ALTITUDE),
+            float(pkt.VOLTAGE),
+            float(pkt.CURRENT),
+            float(pkt.ACCEL_R),
+            float(pkt.ACCEL_P),
+            float(pkt.ACCEL_Y),
+            float(pkt.GYRO_R),
+            float(pkt.GYRO_P),
+            float(pkt.GYRO_Y)])
+        )
+        self.update_graphs_callback()
+
+        # FIXME: Do all the data
+        # .
+        # .
+        # .
+        # .
+        # .
+
+        # Command Echo
+        self.label_cmd_echo.config(state="normal")
+        self.label_cmd_echo.delete(0, tk.END)
+        self.label_cmd_echo.insert(0, pkt.CMD_ECHO)
+        self.label_cmd_echo.config(state="readonly")
+
+        return
+
+    def insert_graph_data(self, arr):
+        for i in range(0,9):
+            self.graphdata[i] += [arr[i]]
+            if len(self.graphdata[i]) > 10:
+                self.graphdata[i] = self.graphdata[i][1:]
+        return
+
+    def update_graphs_callback(self):
+        for i in range(0,3):
+            for j in range(0,3):
+                self.axs[i,j].clear()
+                self.axs[i,j].set_title(self.str_plot_names[i*3+j])
+                self.axs[i,j].plot(self.graphdata[i*3+j])
+        self.canvas.draw()
+        #self.axs[0,0].set_title(random.randint(1,100))
+        return
+
+    def demo_graph_print(self):
+        print("[DEBUG] Demo Callback")
+        self.insert_graph_data(
+            [random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5),
+            random.randint(1,5)]
+        )
+        self.update_graphs_callback()
+        self.after(1000, self.demo_graph_print)
+        return

@@ -3,9 +3,6 @@ import GCSXbee
 
 if __name__ == "__main__":
     gui_app = App()
-    #gui_app.hi_loop_callback()
-
-    #gui_app.demo_loop_callback()
 
     # Create a telemetry handler object
     telemetry_handler = None
@@ -14,6 +11,8 @@ if __name__ == "__main__":
         telemetry_handler.start_telemetry()
     except Exception as e:
         print(e)
+
+    #gui_app.demo_graph_print()
 
     gui_app.mainloop()
 

@@ -12,8 +12,21 @@ def send_msg(msg):
     sock.close()
 
 # Test Messages
+
+'''
 msgs = ["Hi","How","Are","You?","[END]"]
 
 for msg in msgs:
     send_msg(msg)
+    time.sleep(1)
+'''
+
+sample_csv = open("./Flight_3174.csv","rt")
+
+lines = sample_csv.readlines()
+
+lines_clean = lines[1:]
+
+for line in lines_clean:
+    send_msg(line[:-2])
     time.sleep(1)
