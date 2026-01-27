@@ -126,7 +126,7 @@ class App(tk.Tk):
         self.configure(bg=COLOR_BG_GRAY)
         width = self.winfo_screenwidth() # Gets the screen dimensions
         height = self.winfo_screenheight()
-        self.geometry("%dx%d" % (width, height)) # Sets the dimensions of the window to those screen dimensions
+        self.geometry("%dx%d" % (width/2, height)) # Sets the dimensions of the window to those screen dimensions
 
         # Linux Version of Zoom
         self.state('zoomed')
@@ -201,8 +201,6 @@ class App(tk.Tk):
         for i in range(0,3):
             for j in range(0,3):
                 self.axs[i,j].set_title(self.str_plot_names[i*3+j])
-        #self.update_graphs_callback()
-        
 
         # Load UF gator logo image data and create widget for it
         imageFile_gators = Image.open("Images/Gators Logo.png")
