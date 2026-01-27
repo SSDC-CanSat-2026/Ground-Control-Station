@@ -21,7 +21,7 @@ for msg in msgs:
     time.sleep(1)
 '''
 
-sample_csv = open("./Flight_3174.csv","rt")
+sample_csv = open("./SimCSV.csv","rt")
 
 lines = sample_csv.readlines()
 

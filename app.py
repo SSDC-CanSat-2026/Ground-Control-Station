@@ -28,8 +28,8 @@ global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
 
 # Mission Info Variables
-#global TEAM_ID;                 TEAM_ID = "1075"
-global TEAM_ID;                 TEAM_ID = "3174"
+global TEAM_ID;                 TEAM_ID = "1075"
+#global TEAM_ID;                 TEAM_ID = "3174" # Last Year's team number
 
 ######################################################################
 
