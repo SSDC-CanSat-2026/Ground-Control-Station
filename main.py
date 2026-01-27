@@ -14,6 +14,8 @@ if __name__ == "__main__":
 
     #gui_app.demo_graph_print()
 
+    gui_app.my_telemetry_handler = telemetry_handler
+
     gui_app.mainloop()
 
     telemetry_handler.stop_telemetry()

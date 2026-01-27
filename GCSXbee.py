@@ -71,12 +71,13 @@ class TelemetryHandler:
             raise Exception(f"GCSXbee (File: GCSXbee.py Function: start_telemetry) [START TELEMETRY] Failed to open XBee device: {e}")
             return # Prevents the .csv from being overwritten. Should have done this sooner.
         
+        # FIXME:
         # Create CSV file with specified naming format
-        self.csv_file = open(self.write_filepath, 'w', newline='')
-        self.csv_writer = csv.writer(self.csv_file)
+        #self.csv_file = open(self.write_filepath, 'w', newline='')
+        #self.csv_writer = csv.writer(self.csv_file)
 
         # Write header row
-        self.csv_writer.writerow(self.telemetry_fields)
+        #self.csv_writer.writerow(self.telemetry_fields)
 
         # Start receiving data
         self.is_receiving = True
@@ -89,8 +90,9 @@ class TelemetryHandler:
         if self.receive_thread:
             self.receive_thread.join()
 
-        if self.csv_file:
-            self.csv_file.close()
+        # FIXME:
+        #if self.csv_file:
+        #    self.csv_file.close()
 
         print(f"GCSXbee (File: GCSXbee.py Function: stop_telemetry) [STOP TELEMETRY] : Telemetry stopped. {self.packet_count} packets received.")
 
@@ -109,18 +111,28 @@ class TelemetryHandler:
         # Because the FSW uses a buffer to help read the commands sent to it, if the buffer is not filled right away it will wait until it is filled.
         # This will cause some commands to need to be sent twice. Padding the strings here with null terms allows the commands to be sent once.
         if command == "CX ON":
+            print("[DEBUG] CX-ON COMMAND ENTERED") #FIXME: REMOVE
             CXON = f"CMD,{self.team_id},CX,ON\0\0\0\0\0\0\0\0"
             try:
+                print("[DEBUG] CX-ON COMMAND INSIDE") #FIXME: REMOVE
                 if self.xbee_device.is_open():
                     self.xbee_device.send_data_async(remote_xbee=self.receiver, data=CXON)
+                    print("[DEBUG] CX-ON COMMAND SUCCESS") #FIXME: REMOVE
+                else:
+                    print("[DEBUG] CX-ON COMMAND FAILED") #FIXME: REMOVE
             except Exception as e:
                 print(f"ERROR (File: GCSXbee.py Function: send_command) [COMMAND CXON]: Error sending command - {e}")
 
         elif command == "CX OFF":
+            print("[DEBUG] CX-OFF COMMAND ENTERED") #FIXME: REMOVE
             CXOFF = f"CMD,{self.team_id},CX,OFF\0\0\0\0\0\0\0"
             try:
+                print("[DEBUG] CX-OFF COMMAND INSIDE") #FIXME: REMOVE
                 if self.xbee_device.is_open():
                     self.xbee_device.send_data_async(remote_xbee=self.receiver ,data=CXOFF)
+                    print("[DEBUG] CX-OFF COMMAND SUCCESS") #FIXME: REMOVE
+                else:
+                    print("[DEBUG] CX-OFF COMMAND FAILED") #FIXME: REMOVE
             except Exception as e:
                 print(f"ERROR (File: GCSXbee.py Function: send_command) [COMMAND CXOFF]: Error sending command - {e}")
         
@@ -291,6 +303,7 @@ class TelemetryHandler:
         Args:
             csv_path (string): Path to the CSV file containing pressure data.
         """
+        
         with open(self.SIM_CSV_PATH, 'r') as csv_file:
             csv_reader = csv.reader(csv_file)
             for row in csv_reader:

@@ -58,8 +58,7 @@ class TelemetryPacket:
     CMD_ECHO = ""
 
     def __init__(self, string):
-        fields = string.split(",")
-        
+        fields = string.split(",") 
         self.TEAM_ID = fields[0]
         self.MISSION_TIME = fields[1]
         self.PACKET_COUNT = fields[2]
@@ -82,19 +81,20 @@ class TelemetryPacket:
         self.GPS_LONGITUDE = fields[19]
         self.GPS_SATS = fields[20]
         self.CMD_ECHO = fields[21]
+        return
 
     def get_str(self):
-
         return f"{self.TEAM_ID},{self.MISSION_TIME},{self.PACKET_COUNT},{self.MODE},{self.STATE},{self.ALTITUDE},{self.TEMPERATURE},{self.PRESSURE},{self.VOLTAGE},{self.CURRENT},{self.GYRO_R},{self.GYRO_P},{self.GYRO_Y},{self.ACCEL_R},{self.ACCEL_P},{self.ACCEL_Y},{self.GPS_TIME},{self.GPS_ALTITUDE},{self.GPS_LATITUDE},{self.GPS_LONGITUDE},{self.GPS_SATS},{self.CMD_ECHO}"
-
 
 class App(tk.Tk):
   
     # Make all the readout variables
-    master_pkt = TelemetryPacket(f"{TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
-    int_packet_rcv = int(master_pkt.PACKET_COUNT)
+    latest_pkt = TelemetryPacket(f"{TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
+    int_packet_rcv = int(latest_pkt.PACKET_COUNT)
     int_packet_loss = 0
     int_cmd_entry_state = 0
+    my_telemetry_handler = None
+    simulation_active = False
 
     graphdata = [
         list([]),    # altitude
@@ -113,7 +113,7 @@ class App(tk.Tk):
         super().__init__()
 
         # Add the color and size properties to the main window
-        self.title("Tkinter Grid Testing Python Cansat 2025-2026")
+        self.title("UF SSDC Ground Control Station (Tkinter) 2025-2026")
         self.configure(bg=COLOR_BG_GRAY)
         width = self.winfo_screenwidth() # Gets the screen dimensions
         height = self.winfo_screenheight()
@@ -139,10 +139,17 @@ class App(tk.Tk):
         menubar.add_cascade(label="Help", menu=menu_help, font=FONT_MENU)
 
         # Tack functions to those tabs 
-        menu_file.add_command(label="Exit", command=self.menuFunc_exit, font=FONT_MENU)
-        menu_help.add_command(label="About", command=self.menuFunc_about, font=FONT_MENU)
-        menu_food.add_command(label="Burger", command=self.menuFunc_burger, font=FONT_MENU)
-        menu_food.add_command(label="Fries", command=self.menuFunc_fries, font=FONT_MENU)
+        menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU)
+        menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU)
+        menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU)
+        menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU)
+        menu_commands.add_command(label="CXON", command=lambda:self._send_command("CXON"))
+        menu_commands.add_command(label="CXOFF", command=lambda:self._send_command("CXOFF"))
+        menu_commands.add_command(label="ST", command=lambda:self._send_command("ST"))
+        menu_commands.add_command(label="SIM", command=lambda:self._send_command("SIM"))
+        menu_commands.add_command(label="SIMP", command=lambda:self._send_command("SIMP"))
+        menu_commands.add_command(label="CAL", command=lambda:self._send_command("CAL"))
+        menu_commands.add_command(label="MEC", command=lambda:self._send_command("MEC"))
 
         # Create widgets
         label1 = tk.Label(self, text="Single Data Info [DEBUG]", background="red", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
@@ -162,24 +169,24 @@ class App(tk.Tk):
         label_stub_flight_state = tk.Label(label1, text="Flight State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_flight_mode = tk.Label(label1, text="Flight Mode:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
                 # Values
-        label_team_id = tk.Label(label1, text=str(self.master_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
-        self.label_mission_time = tk.Label(label1, text=self.master_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_temperature = tk.Label(label1, text=self.master_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_gps_pos = tk.Label(label1, text=f"{(int(self.master_pkt.GPS_ALTITUDE),int(self.master_pkt.GPS_LATITUDE),int(self.master_pkt.GPS_LONGITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
+        label_team_id = tk.Label(label1, text=str(self.latest_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
+        self.label_mission_time = tk.Label(label1, text=self.latest_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_temperature = tk.Label(label1, text=self.latest_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_gps_pos = tk.Label(label1, text=f"{(int(self.latest_pkt.GPS_ALTITUDE),int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_rcv = tk.Label(label1, text=self.int_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_loss = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_flight_state = tk.Label(label1, text=self.master_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_flight_mode = tk.Label(label1, text=self.master_pkt.MODE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_state = tk.Label(label1, text=self.latest_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_mode = tk.Label(label1, text=self.latest_pkt.MODE, font=FONT_TEXT_BOLD, anchor="center")
                 # Command Frame Pieces
         label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_cmd = tk.Label(label_cmd_frame, text="Command Input:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_entry = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20)
-        label_cmd_button = tk.Button(label_cmd_frame, text="Send", font=FONT_TITLE, bg=COLOR_BG_GRAY, command=self.cmd_button_callback)
+        label_cmd_button = tk.Button(label_cmd_frame, text="Send", font=FONT_TITLE, bg=COLOR_BG_GRAY, command=self._cmd_button_callback)
         label_stub_echo = tk.Label(label_cmd_frame, text="Command Echo:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_echo = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20, state="readonly")
         
         # Bind the FocusIn callback to the entry field to remove the feedback messages I print in their
-        self.label_cmd_entry.bind("<FocusIn>", self.cmd_entry_enter_callback)
+        self.label_cmd_entry.bind("<FocusIn>", self._cmd_entry_enter_callback)
 
         # Plot widgets (Mission Guide G7)
             # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER(R,P,Y), ROTATION_RATES(R,P,Y)
@@ -292,7 +299,7 @@ class App(tk.Tk):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind(address)
         self.sock.listen(0)
-        self.tk.createfilehandler(self.sock, tk.READABLE | tk.WRITABLE, self.recv_msg_callback)
+        self.tk.createfilehandler(self.sock, tk.READABLE | tk.WRITABLE, self._recv_msg_callback)
 
         # Finally we set the app icon on the way out
         imageFile_ssdc_icon = Image.open("Images/SSDC Icon.png")
@@ -306,25 +313,25 @@ class App(tk.Tk):
         self.sock.close()
         return
 
-    def menuFunc_exit(self):
+    def _menuFunc_exit(self):
         exit()
         return
 
-    def menuFunc_about(self): #TODO: Fill in text here with proper info
+    def _menuFunc_about(self): #TODO: Fill in text here with proper info
         messagebox.showinfo(
             "About This Application",
             "This is a sample Tkinter application.\n\nVersion: 1.0\nAuthor: CANSAT"
         )
         return
 
-    def menuFunc_burger(self):
+    def _menuFunc_burger(self):
         messagebox.showinfo(
             "Bon Appétit",
             "🍔"
         )
         return
 
-    def menuFunc_fries(self):
+    def _menuFunc_fries(self):
         messagebox.showinfo(
             "Bon Appétit",
             "🍟"
@@ -332,7 +339,7 @@ class App(tk.Tk):
         return
 
 
-    def cmd_entry_enter_callback(self, event):
+    def _cmd_entry_enter_callback(self, event):
 
         self.label_cmd_entry.config(fg="black")
 
@@ -341,7 +348,7 @@ class App(tk.Tk):
             self.label_cmd_entry.delete(0, tk.END)
         return
 
-    def cmd_button_callback(self):
+    def _cmd_button_callback(self):
 
         self.focus_force()
 
@@ -355,37 +362,37 @@ class App(tk.Tk):
         else:
             match(cmd_str):
                 case "CXON":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("CXON")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "CXOFF":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("CXOFF")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "ST":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("ST")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "SIM":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("SIM")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "SIMP":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("SIMP")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "CAL":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("CAL")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "MEC":
-                    print(f"[DEBUG] Command Sent: {cmd_str}")
+                    self._send_command("MEC")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
@@ -397,7 +404,7 @@ class App(tk.Tk):
         return
 
     # This callback function currently only reads one packet before closing the client connection so the client has to re-connect for every packet sent
-    def recv_msg_callback(self, sock, mask):
+    def _recv_msg_callback(self, sock, mask):
         
         # Set up the client connection
         client_socket, client_address = sock.accept()
@@ -416,66 +423,71 @@ class App(tk.Tk):
 
         if pkt.TEAM_ID != TEAM_ID:
             print(f"Someone Else's Packet Received: {msg}\n")
+        else:
+            self.latest_pkt = pkt
+            self._update_all()
 
+        return
+
+    def _update_all(self):
         # Process the new data
         #   TEAM_ID, MISSION_TIME, PACKET_COUNT, MODE, STATE, ALTITUDE,
         #   TEMPERATURE, PRESSURE, VOLTAGE, CURRENT, GYRO_R, GYRO_P,
         #   GYRO_Y, ACCEL_R, ACCEL_P, ACCEL_Y, GPS_TIME, GPS_ALTITUDE,
         #   GPS_LATITUDE, GPS_LONGITUDE, GPS_SATS, CMD_ECHO [,,OPTIONAL_DATA]
 
-        self.master_pkt = pkt
-
         # Mission Time
-        self.label_mission_time.config(text=pkt.MISSION_TIME)
+        self.label_mission_time.config(text=self.latest_pkt.MISSION_TIME)
 
         # Packet Count
         self.int_packet_rcv += 1
         self.label_packet_rcv.config(text=self.int_packet_rcv)
-        self.int_packet_loss = int(pkt.PACKET_COUNT) - self.int_packet_rcv
+        self.int_packet_loss = int(self.latest_pkt.PACKET_COUNT) - self.int_packet_rcv
         self.label_packet_loss.config(text=self.int_packet_loss)
 
         # Flight Mode
-        self.label_flight_mode.config(text=pkt.MODE)
+        self.label_flight_mode.config(text=self.latest_pkt.MODE)
 
         # Flight State
-        self.label_flight_state.config(text=pkt.STATE)
+        self.label_flight_state.config(text=self.latest_pkt.STATE)
 
         # Temperature
-        self.label_temperature.config(text=pkt.TEMPERATURE)
+        self.label_temperature.config(text=self.latest_pkt.TEMPERATURE)
 
         # Voltage, Current, Gyro (RPY), Altitude (RPY)
-        self.insert_graph_data(
-            list([float(pkt.ALTITUDE),
-            float(pkt.VOLTAGE),
-            float(pkt.CURRENT),
-            float(pkt.ACCEL_R),
-            float(pkt.ACCEL_P),
-            float(pkt.ACCEL_Y),
-            float(pkt.GYRO_R),
-            float(pkt.GYRO_P),
-            float(pkt.GYRO_Y)])
+        self._insert_graph_data(
+            list([float(self.latest_pkt.ALTITUDE),
+            float(self.latest_pkt.VOLTAGE),
+            float(self.latest_pkt.CURRENT),
+            float(self.latest_pkt.ACCEL_R),
+            float(self.latest_pkt.ACCEL_P),
+            float(self.latest_pkt.ACCEL_Y),
+            float(self.latest_pkt.GYRO_R),
+            float(self.latest_pkt.GYRO_P),
+            float(self.latest_pkt.GYRO_Y)])
         )
-        self.update_graphs_callback()
+        self._update_graphs_callback()
 
         # GPS Location
-        self.label_gps_pos.config(text=f"{(int(pkt.GPS_ALTITUDE),int(pkt.GPS_LATITUDE),int(pkt.GPS_LONGITUDE))}")
+        # FIXME: Put this back once we have good data to read
+        #self.label_gps_pos.config(text=f"{(int(self.latest_pkt.GPS_ALTITUDE),int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE))}")
 
         # Command Echo
         self.label_cmd_echo.config(state="normal")
         self.label_cmd_echo.delete(0, tk.END)
-        self.label_cmd_echo.insert(0, pkt.CMD_ECHO)
+        self.label_cmd_echo.insert(0, self.latest_pkt.CMD_ECHO)
         self.label_cmd_echo.config(state="readonly")
 
         return
 
-    def insert_graph_data(self, arr):
+    def _insert_graph_data(self, arr):
         for i in range(0,9):
             self.graphdata[i] += [arr[i]]
             if len(self.graphdata[i]) > 10:
                 self.graphdata[i] = self.graphdata[i][1:]
         return
 
-    def update_graphs_callback(self):
+    def _update_graphs_callback(self):
         for i in range(0,3):
             for j in range(0,3):
                 self.axs[i,j].clear()
@@ -486,7 +498,7 @@ class App(tk.Tk):
 
     def demo_graph_print(self):
         print("[DEBUG] Demo Callback")
-        self.insert_graph_data(
+        self._insert_graph_data(
             [random.randint(1,5),
             random.randint(1,5),
             random.randint(1,5),
@@ -497,6 +509,35 @@ class App(tk.Tk):
             random.randint(1,5),
             random.randint(1,5)]
         )
-        self.update_graphs_callback()
+        self._update_graphs_callback()
         self.after(1000, self.demo_graph_print)
         return
+
+    # GCS to Flight Software Commands
+    def _send_command(self,cmd):
+        print(f"[DEBUG] Command Sent: {cmd}")
+
+        if self.my_telemetry_handler == None:
+            # No telemetry handler linked so ignore
+            print("[DEBUG] No TelemetryHandler linked")
+            return
+        else:
+
+            if cmd != "":
+                try:
+                    match (cmd):
+                        case "CXON": self.my_telemetry_handler.send_command("CX ON")
+                        case "CXOFF": self.my_telemetry_handler.send_command("CX OFF")
+                        case _: print("[DEBUG] YOLO") #FIXME: Fill in the other commands
+                except Exception as e:
+                    print(f"ERROR [SEND COMMAND] : Error sending command {e}")
+
+            # Labels to track where in the simulation activation sequence the Can is in.
+            # These labels are based on the CMD ECHO of the received packets to ensure that the Can received the commands.
+            if self.my_telemetry_handler.sim_enable:
+                if self.my_telemetry_handler.sim_activate:
+                    self.simulation_active = True
+                else:
+                    self.simulation_active = False
+            else:
+                self.simulation_active = False
