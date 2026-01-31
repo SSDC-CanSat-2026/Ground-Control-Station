@@ -28,8 +28,6 @@ global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
 
 # Mission Info Variables
-global TEAM_ID;                 TEAM_ID = "1075"
-#global TEAM_ID;                 TEAM_ID = "3174" # Last Year's team number
 
 ######################################################################
 
@@ -87,16 +85,8 @@ class TelemetryPacket:
         return f"{self.TEAM_ID},{self.MISSION_TIME},{self.PACKET_COUNT},{self.MODE},{self.STATE},{self.ALTITUDE},{self.TEMPERATURE},{self.PRESSURE},{self.VOLTAGE},{self.CURRENT},{self.GYRO_R},{self.GYRO_P},{self.GYRO_Y},{self.ACCEL_R},{self.ACCEL_P},{self.ACCEL_Y},{self.GPS_TIME},{self.GPS_ALTITUDE},{self.GPS_LATITUDE},{self.GPS_LONGITUDE},{self.GPS_SATS},{self.CMD_ECHO}"
 
 class App(tk.Tk):
-  
-    # Make all the readout variables
-    latest_pkt = TelemetryPacket(f"{TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
-    int_packet_rcv = int(latest_pkt.PACKET_COUNT)
-    int_packet_loss = 0
-    int_cmd_entry_state = 0
-    my_telemetry_handler = None
-    simulation_active = False
 
-    graphdata = [
+    graph_data = [
         list([]),    # altitude
         list([]),    # voltage
         list([]),    # current
@@ -107,8 +97,25 @@ class App(tk.Tk):
         list([]),    # gyro_p
         list([])     # gyro_y
     ]
+    gps_data = [
+        list([]),   #latitude
+        list([]),   #longitude
+        list([])    #altitude
+    ]
 
-    def __init__(self):
+    def __init__(self, TEAM_ID):
+
+        # Add the TEAM_ID to the global variables
+        self.TEAM_ID = TEAM_ID
+
+        # Make all the readout variables
+        self.latest_pkt = TelemetryPacket(f"{self.TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
+        self.int_packet_rcv = int(self.latest_pkt.PACKET_COUNT)
+        self.int_packet_loss = 0
+        self.int_cmd_entry_state = 0
+        self.my_telemetry_handler = None
+        self.simulation_active = False
+
         # Create the main window
         super().__init__()
 
@@ -128,28 +135,31 @@ class App(tk.Tk):
 
         # Create menu bar objects
         menu_file = tk.Menu(menubar, tearoff=False)
+        menu_options = tk.Menu(menubar, tearoff=False)
         menu_food = tk.Menu(menubar, tearoff=False)
         menu_commands = tk.Menu(menubar, tearoff=False)
         menu_help = tk.Menu(menubar, tearoff=False)
 
         # Create tabs from those objects
-        menubar.add_cascade(label="File", menu=menu_file, font=FONT_MENU)
+        menubar.add_cascade(label="File", menu=menu_file, font=FONT_MENU) # TODO: Add a view csv button
+        menubar.add_cascade(label="Options", menu=menu_options, font=FONT_MENU)
         menubar.add_cascade(label="Food", menu=menu_food, font=FONT_MENU)
         menubar.add_cascade(label="CMD", menu=menu_commands, font=FONT_MENU)
         menubar.add_cascade(label="Help", menu=menu_help, font=FONT_MENU)
 
         # Tack functions to those tabs 
         menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU)
-        menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU)
+        menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU)
-        menu_commands.add_command(label="CXON", command=lambda:self._send_command("CXON"))
+        menu_commands.add_command(label="CXON", command=lambda:self._send_command("CXON")) # TODO: Extend the text with a mini description
         menu_commands.add_command(label="CXOFF", command=lambda:self._send_command("CXOFF"))
         menu_commands.add_command(label="ST", command=lambda:self._send_command("ST"))
         menu_commands.add_command(label="SIM", command=lambda:self._send_command("SIM"))
         menu_commands.add_command(label="SIMP", command=lambda:self._send_command("SIMP"))
         menu_commands.add_command(label="CAL", command=lambda:self._send_command("CAL"))
         menu_commands.add_command(label="MEC", command=lambda:self._send_command("MEC"))
+        menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU)
 
         # Create widgets
         label1 = tk.Label(self, text="Single Data Info [DEBUG]", background="red", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
@@ -162,8 +172,8 @@ class App(tk.Tk):
                 # Stubs
         label_stub_team_id = tk.Label(label1, text="Team ID:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_mission_time = tk.Label(label1, text="Mission Time:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_temperature = tk.Label(label1, text="Temp:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_gps_pos = tk.Label(label1, text="GPS:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_temperature = tk.Label(label1, text="Temp (°C):", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_gps_pos = tk.Label(label1, text="GPS (Lat/Long/Alt):", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_packet_rcv = tk.Label(label1, text="Packets Received:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_packet_loss = tk.Label(label1, text="Packets Lost:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         label_stub_flight_state = tk.Label(label1, text="Flight State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
@@ -172,7 +182,7 @@ class App(tk.Tk):
         label_team_id = tk.Label(label1, text=str(self.latest_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
         self.label_mission_time = tk.Label(label1, text=self.latest_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
         self.label_temperature = tk.Label(label1, text=self.latest_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_gps_pos = tk.Label(label1, text=f"{(int(self.latest_pkt.GPS_ALTITUDE),int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
+        self.label_gps_pos = tk.Label(label1, text=f"{(int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE),int(self.latest_pkt.GPS_ALTITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_rcv = tk.Label(label1, text=self.int_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_loss = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
         self.label_flight_state = tk.Label(label1, text=self.latest_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
@@ -195,10 +205,28 @@ class App(tk.Tk):
         self.canvas = FigureCanvasTkAgg(self.fig, master=label2)
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
 
-        self.str_plot_names = ["Altitude", "Battery Voltage", "Battery Current", "Accel_R", "Accel_P", "Accel_Y", "Gyro_R", "Gyro_P", "Gyro_Y"]
+        self.str_plot_names = ["Altitude (m)", "Battery Voltage (V)", "Battery Current (A)", "Accel_R (deg/s²)", "Accel_P (deg/s²)", "Accel_Y (deg/s²)", "Gyro_R (deg/sec)", "Gyro_P (deg/sec)", "Gyro_Y (deg/sec)"]
         for i in range(0,3):
             for j in range(0,3):
-                self.axs[i,j].set_title(self.str_plot_names[i*3+j])
+                self.axs[i,j].set_title(self.str_plot_names[i*3+j], fontsize=14) # FIXME: Find a way to set the font to 14pt
+
+        #FIXME: Remove later
+        # 3D Graph
+            # Data arrays for the 3D plot
+
+            # Create all the variables
+        fig_3d = plt.figure()
+        self.axs_3d = fig_3d.add_subplot(projection='3d') # Designates the axes as a 3d plot
+        self.axs_3d.set_title('GPS Position', fontsize=14, fontweight='bold') # Plot title
+        self.axs_3d.set_xlabel('Latitude (deg)', fontsize=14) # X-axis
+        self.axs_3d.set_ylabel('Longitude (deg)', fontsize=14) # Y-axis
+        self.axs_3d.set_zlabel('Altitude (m)', fontsize=14) # Z-axis
+        self.axs_3d.set_facecolor(COLOR_BG_GRAY)
+        self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2])
+        self.axs_3d.view_init(azim=80)
+        fig_3d.patch.set_facecolor(COLOR_BG_GRAY) # Light gray background
+        canvas_3d = FigureCanvasTkAgg(fig_3d, master = label3)
+        canvas_3d.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
 
         # Load UF gator logo image data and create widget for it
         imageFile_gators = Image.open("Images/Gators Logo.png")
@@ -261,8 +289,8 @@ class App(tk.Tk):
         # Attach the widgets to their grid positions
             # Root labels
         label1.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
-        label2.grid(row = 1, column = 0, columnspan = 2, rowspan=1, sticky="nsew")
-        #label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
+        label2.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
+        label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
         label4.grid(row = 0, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
             # Scalar Status labels
                 # Stubs
@@ -294,6 +322,10 @@ class App(tk.Tk):
         label_gators_logo.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         label_ssdc_logo.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
 
+        #FIXME: Remove later
+        # 3D Graph
+
+
         # Set up the socket for packet retrieval
         address = ('localhost', 6000)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -307,6 +339,8 @@ class App(tk.Tk):
         self.iconphoto(False, iconTk_ssdc)
 
         return
+
+    # Helper methods and callback functions
 
     def __del__(self):
         self.tk.deletefilehandler(self.sock)
@@ -421,7 +455,7 @@ class App(tk.Tk):
         print(f"Received: {msg}\n")
         pkt = TelemetryPacket(msg)
 
-        if pkt.TEAM_ID != TEAM_ID:
+        if pkt.TEAM_ID != self.TEAM_ID:
             print(f"Someone Else's Packet Received: {msg}\n")
         else:
             self.latest_pkt = pkt
@@ -470,7 +504,8 @@ class App(tk.Tk):
 
         # GPS Location
         # FIXME: Put this back once we have good data to read
-        #self.label_gps_pos.config(text=f"{(int(self.latest_pkt.GPS_ALTITUDE),int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE))}")
+        self.label_gps_pos.config(text=f"{(int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE),int(self.latest_pkt.GPS_ALTITUDE))}")
+        self._insert_gps_data([float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE)])
 
         # Command Echo
         self.label_cmd_echo.config(state="normal")
@@ -482,9 +517,16 @@ class App(tk.Tk):
 
     def _insert_graph_data(self, arr):
         for i in range(0,9):
-            self.graphdata[i] += [arr[i]]
-            if len(self.graphdata[i]) > 10:
-                self.graphdata[i] = self.graphdata[i][1:]
+            self.graph_data[i] += [arr[i]]
+            if len(self.graph_data[i]) > 10:
+                self.graph_data[i] = self.graph_data[i][1:]
+        return
+    
+    def _insert_gps_data(self, arr):
+        for i in range(0,3):
+            self.gps_data[i] += [arr[i]]
+            if len(self.gps_data[i]) > 10:
+                self.gps_data[i] = self.gps_data[i][1:]
         return
 
     def _update_graphs_callback(self):
@@ -492,8 +534,11 @@ class App(tk.Tk):
             for j in range(0,3):
                 self.axs[i,j].clear()
                 self.axs[i,j].set_title(self.str_plot_names[i*3+j])
-                self.axs[i,j].plot(self.graphdata[i*3+j])
+                self.axs[i,j].plot(self.graph_data[i*3+j])
+        self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2])
         self.canvas.draw()
+        #self.canvas_3d.draw()
+        plt.draw()
         return
 
     def demo_graph_print(self):
@@ -541,3 +586,9 @@ class App(tk.Tk):
                     self.simulation_active = False
             else:
                 self.simulation_active = False
+        return
+
+    def _menuFunc_reset_3d(self):
+        self.axs_3d.view_init(azim=80)
+        plt.draw()
+        return

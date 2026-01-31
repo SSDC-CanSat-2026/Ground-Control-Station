@@ -9,7 +9,8 @@ import os
 
 now = datetime.now()
 
-state = "LAUNCH_WAIT"
+state = ["LAUNCH_WAIT"]
+
 mode = "S"
 cmd = "CXON"
 packet_count = 1
@@ -63,8 +64,8 @@ last_packet = df.loc[0]
 while(packet_count <= 1000):
     # print(f"Packet Count: {packet_count}")
     if packet_count % 25 == 0:
-        time.sleep(10.0)
         print("Waiting for 10 seconds")
+        #time.sleep(10.0)
 
     if state == "LAUNCH_WAIT":
         state = "ASCENT"
@@ -113,7 +114,7 @@ while(packet_count <= 1000):
                     cmd] # CMD
     
     last_packet = df.loc[len(df.index)-1]
-    time.sleep(0.5)
+    time.sleep(1.0)
 
     df.to_csv(path, mode='a', header=False, index=False)
     end = time.perf_counter()
