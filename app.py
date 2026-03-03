@@ -97,6 +97,7 @@ class App(tk.Tk):
         list([]),    # gyro_p
         list([])     # gyro_y
     ]
+    graph_domain = list([])     # sample number
     gps_data = [
         list([]),   #latitude
         list([]),   #longitude
@@ -206,6 +207,7 @@ class App(tk.Tk):
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
 
         self.str_plot_names = ["Altitude (m)", "Battery Voltage (V)", "Battery Current (A)", "Accel_R (deg/s²)", "Accel_P (deg/s²)", "Accel_Y (deg/s²)", "Gyro_R (deg/sec)", "Gyro_P (deg/sec)", "Gyro_Y (deg/sec)"]
+        self.graphs_lines = list([None for i in range(0,3*3)])
         for i in range(0,3):
             for j in range(0,3):
                 self.axs[i,j].set_title(self.str_plot_names[i*3+j], fontsize=14) # FIXME: Find a way to set the font to 14pt
@@ -215,18 +217,19 @@ class App(tk.Tk):
             # Data arrays for the 3D plot
 
             # Create all the variables
-        fig_3d = plt.figure()
-        self.axs_3d = fig_3d.add_subplot(projection='3d') # Designates the axes as a 3d plot
+        self.fig_3d = plt.figure()
+        self.axs_3d = self.fig_3d.add_subplot(111, projection='3d') # Designates the axes as a 3d plot
+        self.graph3d_line = None
         self.axs_3d.set_title('GPS Position', fontsize=14, fontweight='bold') # Plot title
         self.axs_3d.set_xlabel('Latitude (deg)', fontsize=14) # X-axis
         self.axs_3d.set_ylabel('Longitude (deg)', fontsize=14) # Y-axis
         self.axs_3d.set_zlabel('Altitude (m)', fontsize=14) # Z-axis
         self.axs_3d.set_facecolor(COLOR_BG_GRAY)
-        self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2])
+        self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2], color='blue')
         self.axs_3d.view_init(azim=80)
-        fig_3d.patch.set_facecolor(COLOR_BG_GRAY) # Light gray background
-        canvas_3d = FigureCanvasTkAgg(fig_3d, master = label3)
-        canvas_3d.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
+        self.fig_3d.patch.set_facecolor(COLOR_BG_GRAY) # Light gray background
+        self.canvas_3d = FigureCanvasTkAgg(self.fig_3d, master = label3)
+        self.canvas_3d.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
 
         # Load UF gator logo image data and create widget for it
         imageFile_gators = Image.open("Images/Gators Logo.png")
@@ -516,8 +519,19 @@ class App(tk.Tk):
         return
 
     def _insert_graph_data(self, arr):
+        # Advance the packet number along the x axis of all the graphs
+        if len(self.graph_domain) == 0:
+            self.graph_domain = [1]
+        else:
+            self.graph_domain += [int(self.latest_pkt.PACKET_COUNT)]
+        # Truncate the old values after it gets to a length of 10
+        if len(self.graph_domain) > 10:
+            self.graph_domain = self.graph_domain[1:]
+
+        # Insert the new graph data
         for i in range(0,9):
             self.graph_data[i] += [arr[i]]
+            # Truncate the old values after it gets to a length of 10
             if len(self.graph_data[i]) > 10:
                 self.graph_data[i] = self.graph_data[i][1:]
         return
@@ -532,12 +546,24 @@ class App(tk.Tk):
     def _update_graphs_callback(self):
         for i in range(0,3):
             for j in range(0,3):
-                self.axs[i,j].clear()
-                self.axs[i,j].set_title(self.str_plot_names[i*3+j])
-                self.axs[i,j].plot(self.graph_data[i*3+j])
-        self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2])
+                if (self.graphs_lines[i*3+j] == None):
+                    self.graphs_lines[i*3+j], = self.axs[i,j].plot(self.graph_data[i*3+j])
+                else:
+                    self.graphs_lines[i*3+j].set_data(self.graph_domain, self.graph_data[i*3+j])
+                    self.axs[i,j].relim()
+                    self.axs[i,j].autoscale_view()
+        if (self.graph3d_line == None):
+            self.graph3d_line, = self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2], color=COLOR_GATOR_BLUE)
+        else:
+            #self.graph3d_line.set_data_3d(self.gps_data[0], self.gps_data[1], self.gps_data[2])
+            self.graph3d_line.remove()
+            self.graph3d_line, = self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2], color=COLOR_GATOR_BLUE)
+            self.axs_3d.set_xlim(min(self.gps_data[0])-10, max(self.gps_data[0])+10)
+            self.axs_3d.set_ylim(min(self.gps_data[1])-10, max(self.gps_data[1])+10)
+            self.axs_3d.set_zlim(min(self.gps_data[2])-10, max(self.gps_data[2])+10)
+            self.axs_3d.autoscale_view(tight=True, scalex=True, scaley=True, scalez=True)
         self.canvas.draw()
-        #self.canvas_3d.draw()
+        self.canvas_3d.draw()
         plt.draw()
         return
 
