@@ -46,16 +46,10 @@ class TelemetryHandler:
             raise Exception(f"GCSXbee (File: GCSXbee.py Function: __init__) [INITIALIZATION] : No file write_path given")
 
         # Define telemetry fields as per competition requirements
-        self.telemetry_fields = [
-            'TEAM_ID', 'MISSION_TIME', 'PACKET_COUNT', 'MODE', 'STATE',
-            'ALTITUDE', 'TEMPERATURE', 'PRESSURE', 'VOLTAGE',
-            'GYRO_R', 'GYRO_P', 'GYRO_Y',
-            'ACCEL_R', 'ACCEL_P', 'ACCEL_Y',
-            'MAG_R', 'MAG_P', 'MAG_Y',
-            'AUTO_GYRO_ROTATION_RATE',
-            'GPS_TIME', 'GPS_ALTITUDE', 'GPS_LATITUDE', 'GPS_LONGITUDE', 'GPS_SATS',
-            'CMD_ECHO'
-        ]
+        self.telemetry_fields = ["TEAM_ID","MISSION_TIME","PACKET_COUNT","MODE","STATE","ALTITUDE",
+              "TEMPERATURE", "PRESSURE", "VOLTAGE","CURRENT",
+              "GYRO_R", "GYRO_P", "GYRO_Y", "ACCEL_R", "ACCEL_P", "ACCEL_Y",
+              "GPS_TIME", "GPS_ALTITUDE", "GPS_LATITUDE", "GPS_LONGITUDE", "GPS_SATS", "CMD_ECHO"]
 
         # Initialize XBee connection
         self.mac_address = mac_addr # This is the MAC address of the FSW radio (the one on the Sat)
@@ -236,12 +230,13 @@ class TelemetryHandler:
                     if xbee_message is None:
                         continue
                     line = line + xbee_message.data.decode('utf-8').strip()  # Append the next message data
+                    #print(f"[RECEIVE TELEMETRY] Received - [{line}]") #FIXME: Remove this later
                     data = line.split(',')
 
                     # Because we could not get the GPS to work, we have to fake all of the GPS data.
                     # This includes GPS time, but it is easier to do that here in the GCS. Whoopsies.
-                    current_time = datetime.now(timezone.utc).strftime('%H:%M:%S')
-                    data[19] = current_time
+                    #current_time = datetime.now(timezone.utc).strftime('%H:%M:%S')
+                    #data[19] = current_time
 
                     # Validate team ID and basic data format
                     if (len(data) >= len(self.telemetry_fields)) and (data[0] == self.team_id):
@@ -261,19 +256,19 @@ class TelemetryHandler:
                         # Update packet count
                         self.packet_count += 1
 
-                    # FIXME : This may need to be updated to handle the format that FSW sends us (the array index that is) -------------------------
-                    if data[24] == "SIMENABLE":
-                        self.sim_enable = True
+                    # # FIXME : This may need to be updated to handle the format that FSW sends us (the array index that is) -------------------------
+                    # if data[24] == "SIMENABLE":
+                    #     self.sim_enable = True
 
-                    elif data[24] == "SIMACT":
-                        self.sim_activate = True 
-                        self.start_sim()                     
+                    # elif data[24] == "SIMACT":
+                    #     self.sim_activate = True 
+                    #     self.start_sim()                     
 
-                    elif data[24] == "SIMDIS":
-                        self.sim_activate = False
-                        self.sim_enable = False
-                        if self.simulation_thread:
-                            self.stop_sim()
+                    # elif data[24] == "SIMDIS":
+                    #     self.sim_activate = False
+                    #     self.sim_enable = False
+                    #     if self.simulation_thread:
+                    #         self.stop_sim()
 
             except Exception as e:
                 print(f"ERROR (File: GCSXbee.py Function: _receive_telemetry) [RECEIVE TELEMETRY] : {e}")

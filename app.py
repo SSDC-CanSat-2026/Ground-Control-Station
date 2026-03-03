@@ -183,7 +183,7 @@ class App(tk.Tk):
         label_team_id = tk.Label(label1, text=str(self.latest_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
         self.label_mission_time = tk.Label(label1, text=self.latest_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
         self.label_temperature = tk.Label(label1, text=self.latest_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_gps_pos = tk.Label(label1, text=f"{(int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE),int(self.latest_pkt.GPS_ALTITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
+        self.label_gps_pos = tk.Label(label1, text=f"{(float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_rcv = tk.Label(label1, text=self.int_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
         self.label_packet_loss = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
         self.label_flight_state = tk.Label(label1, text=self.latest_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
@@ -507,7 +507,7 @@ class App(tk.Tk):
 
         # GPS Location
         # FIXME: Put this back once we have good data to read
-        self.label_gps_pos.config(text=f"{(int(self.latest_pkt.GPS_LATITUDE),int(self.latest_pkt.GPS_LONGITUDE),int(self.latest_pkt.GPS_ALTITUDE))}")
+        self.label_gps_pos.config(text=f"{(float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE))}")
         self._insert_gps_data([float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE)])
 
         # Command Echo
