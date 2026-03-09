@@ -14,6 +14,6 @@ By running the following command:
 5. Then run main.py
    - python main.py
 
+# Resources
 
-
-
+[Cansat Competition Guide 2026](https://cansatcompetition.com/docs/CanSat_Mission_Guide_2026e.pdf)
