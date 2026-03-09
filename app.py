@@ -153,13 +153,13 @@ class App(tk.Tk):
         menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU)
-        menu_commands.add_command(label="CXON", command=lambda:self._send_command("CXON")) # TODO: Extend the text with a mini description
-        menu_commands.add_command(label="CXOFF", command=lambda:self._send_command("CXOFF"))
-        menu_commands.add_command(label="ST", command=lambda:self._send_command("ST"))
-        menu_commands.add_command(label="SIM", command=lambda:self._send_command("SIM"))
-        menu_commands.add_command(label="SIMP", command=lambda:self._send_command("SIMP"))
-        menu_commands.add_command(label="CAL", command=lambda:self._send_command("CAL"))
-        menu_commands.add_command(label="MEC", command=lambda:self._send_command("MEC"))
+        menu_commands.add_command(label="CXON", command=lambda:self._send_command("CXON"), font=FONT_MENU) # TODO: Extend the text with a mini description
+        menu_commands.add_command(label="CXOFF", command=lambda:self._send_command("CXOFF"), font=FONT_MENU)
+        menu_commands.add_command(label="ST", command=lambda:self._send_command("ST"), font=FONT_MENU)
+        menu_commands.add_command(label="SIM", command=lambda:self._send_command("SIM"), font=FONT_MENU)
+        menu_commands.add_command(label="SIMP", command=lambda:self._send_command("SIMP"), font=FONT_MENU)
+        menu_commands.add_command(label="CAL", command=lambda:self._send_command("CAL"), font=FONT_MENU)
+        menu_commands.add_command(label="MEC", command=lambda:self._send_command("MEC"), font=FONT_MENU)
         menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU)
 
         # Create widgets
