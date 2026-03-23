@@ -19,15 +19,11 @@ global COLOR_GATOR_BLUE;        COLOR_GATOR_BLUE = "#0021A5"            # Gator 
 global COLOR_GATOR_GREEN;       COLOR_GATOR_GREEN = "#22884C"           # Gator Green
 global COLOR_SSDC_NAVY;         COLOR_SSDC_NAVY = "#001F3C"             # SSDC Navy Blue
 global COLOR_FADED_TEXT;        COLOR_FADED_TEXT = "#929292"            # Mute gray
-#global FONT_TITLE;              FONT_TITLE = ("Comic Sans MS", 16, "bold")
-#global FONT_TITLE;              FONT_TITLE = ("Nexa Round_Trial Glow", 16, "bold")
 global FONT_TITLE;              FONT_TITLE = ("Verdana", 16, "bold")
 global FONT_MENU;               FONT_MENU = ("Verdana", 14, "bold")
 global FONT_TEXT_BOLD;          FONT_TEXT_BOLD = ("Verdana", 14, "bold")
 global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "underline")
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
-
-# Mission Info Variables
 
 ######################################################################
 
@@ -196,7 +192,7 @@ class App(tk.Tk):
         label_stub_echo = tk.Label(label_cmd_frame, text="Command Echo:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_echo = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20, state="readonly")
         
-        # Bind the FocusIn callback to the entry field to remove the feedback messages I print in their
+        # Bind the FocusIn callback to the entry field to remove the feedback messages I print in there
         self.label_cmd_entry.bind("<FocusIn>", self._cmd_entry_enter_callback)
 
         # Plot widgets (Mission Guide G7)
@@ -325,16 +321,15 @@ class App(tk.Tk):
         label_gators_logo.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         label_ssdc_logo.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
 
-        #FIXME: Remove later
-        # 3D Graph
+        #FIXME: Move the graph and 3d graph grid attachments down here
 
-
-        # Set up the socket for packet retrieval
-        address = ('localhost', 6000)
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind(address)
-        self.sock.listen(0)
-        self.tk.createfilehandler(self.sock, tk.READABLE | tk.WRITABLE, self._recv_msg_callback)
+        # Set up the socket for packet retrieval and packet sending
+        address_in = ('localhost', 6000)
+        self.sock_in = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock_in.bind(address_in)
+        self.sock_in.listen(0)
+        self.tk.createfilehandler(self.sock_in, tk.READABLE | tk.WRITABLE, self._recv_msg_callback)
 
         # Finally we set the app icon on the way out
         imageFile_ssdc_icon = Image.open("Images/SSDC Icon.png")
@@ -346,8 +341,9 @@ class App(tk.Tk):
     # Helper methods and callback functions
 
     def __del__(self):
-        self.tk.deletefilehandler(self.sock)
-        self.sock.close()
+        self.tk.deletefilehandler(self.sock_in)
+        self.sock_in.close()
+        self.sock_out.close()
         return
 
     def _menuFunc_exit(self):
@@ -597,7 +593,12 @@ class App(tk.Tk):
             if cmd != "":
                 try:
                     match (cmd):
-                        case "CXON": self.my_telemetry_handler.send_command("CX ON")
+                        case "CXON":
+                            self.my_telemetry_handler.send_command("CX ON")
+                            address_out = ('localhost', 6001)
+                            self.sock_out.connect(address_out)
+                            msg = "CX ON"
+                            self.sock_out.send(msg.encode('utf-8'))
                         case "CXOFF": self.my_telemetry_handler.send_command("CX OFF")
                         case _: print("[DEBUG] YOLO") #FIXME: Fill in the other commands
                 except Exception as e:
