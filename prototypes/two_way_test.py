@@ -81,9 +81,40 @@ class TelemetryHandler:
 
             sock.close()
 
-def gui():
+class App(tk.Tk):
 
-    def send_msg_callback():
+    def __init__(self):
+        
+        super().__init__()
+        
+        # Create the main window
+        self.title("Asynchronous Socket Send/Rcv Test")
+        self.rowconfigure(0, weight=1, uniform='a')
+        self.rowconfigure(1, weight=1, uniform='a')
+        self.columnconfigure(0, weight=1, uniform='a')
+        # Create and attach label
+        self.label_message = tk.Label(self, text="[NO MESSAGE]", background="white", font=("", 50, "bold"), wraplength= self.winfo_screenwidth() * 0.9, justify=tk.LEFT) # Align text to the left)
+        self.label_message.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nw")
+        label_button = tk.Button(self, text="[Send Hi]", background="white", font=("", 50, "bold"), command=self._send_msg_callback)
+        label_button.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="news")
+
+        # Initialize the sockets
+        self.sock_in = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock_in.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock_in.bind(ADDRESS_G)
+        self.sock_in.listen(0)
+
+        # Add socket to the tkinter event system
+        self.tk.createfilehandler(self.sock_in, tk.READABLE | tk.WRITABLE, self._recv_msg_callback)
+        return
+
+    def __del__(self):
+        # Delete the filehandler and close the socket connection on the way out
+        self.tk.deletefilehandler(self.sock_in)
+        self.sock_in.close()
+        return
+
+    def _send_msg_callback(self):
         # First send some data
         msg = "Hi"
         sock_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -91,9 +122,10 @@ def gui():
         sock_out.send(msg.encode('utf-8'))
         sock_out.close()
         print("GUI Sent:", msg, end="\t")
+        return
 
     # This callback function currently only reads one packet before closing the client connection so the client has to re-connect for every packet sent
-    def recv_msg_callback(sock, mask):
+    def _recv_msg_callback(self, sock, mask):
         
         # Set up the client connection
         client_socket, client_address = sock.accept()
@@ -104,48 +136,18 @@ def gui():
         msg = msg.decode("utf-8") # convert bytes to string
 
         # Update the Tkinter text widget with received data
-        label_message.config(text=msg)
+        self.label_message.config(text=msg)
         print(f"GUI Recv: {msg}")
 
         # Close the connection
         client_socket.close()
-
-    print("GUI Started")
-    time.sleep(1)
-
-    # Create the main window
-    root = tk.Tk()
-    root.title("Asynchronous Socket Send/Rcv Test")
-    root.rowconfigure(0, weight=1, uniform='a')
-    root.rowconfigure(1, weight=1, uniform='a')
-    root.columnconfigure(0, weight=1, uniform='a')
-    # Create and attach label
-    label_message = tk.Label(root, text="[NO MESSAGE]", background="white", font=("", 50, "bold"), wraplength= root.winfo_screenwidth() * 0.9, justify=tk.LEFT) # Align text to the left)
-    label_message.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nw")
-    label_button = tk.Button(root, text="[Send Hi]", background="white", font=("", 50, "bold"), command=send_msg_callback)
-    label_button.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="news")
-
-    # Initialize the sockets
-    sock_in = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock_in.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock_in.bind(ADDRESS_G)
-    sock_in.listen(0)
-
-    # Add socket to the tkinter event system
-    root.tk.createfilehandler(sock_in, tk.READABLE | tk.WRITABLE, recv_msg_callback)
-
-    # Start the Tkinter event loop
-    root.mainloop()
-
-    # Delete the filehandler and close the socket connection on the way out
-    root.tk.deletefilehandler(sock_in)
-    sock_in.close()
-  
-    return
+        return
 
 if __name__ == "__main__":
     handler = TelemetryHandler()
     handler.start_telemetry()
     time.sleep(5)
-    gui()
+    print("GUI Started")
+    gui = App()
+    gui.mainloop()
     handler.stop_telemetry()
