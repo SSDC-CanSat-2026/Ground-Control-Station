@@ -25,6 +25,12 @@ global FONT_TEXT_BOLD;          FONT_TEXT_BOLD = ("Verdana", 14, "bold")
 global FONT_TEXT_BOLD_UNDER;    FONT_TEXT_BOLD_UNDER = ("Verdana", 14, "bold", "underline")
 global FONT_DEBUG;              FONT_DEBUG = ("Verdana", 16, "bold")
 
+HOST = 'localhost'
+PORT_TH = 6000
+PORT_GUI = 6001
+ADDRESS_TH = (HOST, PORT_TH)
+ADDRESS_GUI = (HOST, PORT_GUI)
+
 ######################################################################
 
 class TelemetryPacket:
@@ -124,7 +130,7 @@ class App(tk.Tk):
         self.geometry("%dx%d" % (width/2, height)) # Sets the dimensions of the window to those screen dimensions
 
         # Linux Version of Zoom
-        self.state('zoomed')
+        #self.state('zoomed')
 
         # Create the main menubar and assign as the root's menu
         menubar = tk.Menu(self)
@@ -323,12 +329,13 @@ class App(tk.Tk):
 
         #FIXME: Move the graph and 3d graph grid attachments down here
 
-        # Set up the socket for packet retrieval and packet sending
-        address_in = ('localhost', 6000)
+        # Set up the socket for packet retrieval
         self.sock_in = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock_in.bind(address_in)
+        self.sock_in.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock_in.bind(ADDRESS_GUI)
         self.sock_in.listen(0)
+        
+        # Add socket to the tkinter event system
         self.tk.createfilehandler(self.sock_in, tk.READABLE | tk.WRITABLE, self._recv_msg_callback)
 
         # Finally we set the app icon on the way out
@@ -441,7 +448,7 @@ class App(tk.Tk):
         
         # Set up the client connection
         client_socket, client_address = sock.accept()
-        print(f"Accepted connection from {client_address[0]}:{client_address[1]}")
+        #print(f"Accepted connection from {client_address[0]}:{client_address[1]}")
 
         # Read in a message from the client
         msg = client_socket.recv(1024)
@@ -451,7 +458,8 @@ class App(tk.Tk):
         client_socket.close()
 
         # Print the msg to the terminal and start parsing it with the TelemetryPacket class
-        print(f"Received: {msg}\n")
+        print(f"GUI Recv: {msg}\n")
+        ''' #TODO: Put this back after the new telemetry handler is finished
         pkt = TelemetryPacket(msg)
 
         if pkt.TEAM_ID != self.TEAM_ID:
@@ -459,6 +467,7 @@ class App(tk.Tk):
         else:
             self.latest_pkt = pkt
             self._update_all()
+        '''
 
         return
 
@@ -582,6 +591,16 @@ class App(tk.Tk):
 
     # GCS to Flight Software Commands
     def _send_command(self,cmd):
+        
+        # First send some data
+        msg = "Hi"
+        sock_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock_out.connect(ADDRESS_TH)
+        sock_out.send(msg.encode('utf-8'))
+        sock_out.close()
+        print("GUI Sent:", msg)
+
+        ''' #TODO: Put this back after the new telemetry handler is finished
         print(f"[DEBUG] Command Sent: {cmd}")
 
         if self.my_telemetry_handler == None:
@@ -613,6 +632,8 @@ class App(tk.Tk):
                     self.simulation_active = False
             else:
                 self.simulation_active = False
+
+        '''
         return
 
     def _menuFunc_reset_3d(self):
