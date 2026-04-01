@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 import socket
+import telemetryPacket
 
 ########################## Global Variables ##########################
 
@@ -33,59 +34,6 @@ ADDRESS_GUI = (HOST, PORT_GUI)
 
 ######################################################################
 
-class TelemetryPacket:
-    TEAM_ID = ""
-    MISSION_TIME = ""
-    PACKET_COUNT = ""
-    MODE = ""
-    STATE = ""
-    ALTITUDE = ""
-    TEMPERATURE = ""
-    PRESSURE = ""
-    VOLTAGE = ""
-    CURRENT = ""
-    GYRO_R = ""
-    GYRO_P = ""
-    GYRO_Y = ""
-    ACCEL_R = ""
-    ACCEL_P = ""
-    ACCEL_Y = ""
-    GPS_TIME = ""
-    GPS_ALTITUDE = ""
-    GPS_LATITUDE = ""
-    GPS_LONGITUDE = ""
-    GPS_SATS = ""
-    CMD_ECHO = ""
-
-    def __init__(self, string):
-        fields = string.split(",") 
-        self.TEAM_ID = fields[0]
-        self.MISSION_TIME = fields[1]
-        self.PACKET_COUNT = fields[2]
-        self.MODE = fields[3]
-        self.STATE = fields[4]
-        self.ALTITUDE = fields[5]
-        self.TEMPERATURE = fields[6]
-        self.PRESSURE = fields[7]
-        self.VOLTAGE = fields[8]
-        self.CURRENT = fields[9]
-        self.GYRO_R = fields[10]
-        self.GYRO_P = fields[11]
-        self.GYRO_Y = fields[12]
-        self.ACCEL_R = fields[13]
-        self.ACCEL_P = fields[14]
-        self.ACCEL_Y = fields[15]
-        self.GPS_TIME = fields[16]
-        self.GPS_ALTITUDE = fields[17]
-        self.GPS_LATITUDE = fields[18]
-        self.GPS_LONGITUDE = fields[19]
-        self.GPS_SATS = fields[20]
-        self.CMD_ECHO = fields[21]
-        return
-
-    def get_str(self):
-        return f"{self.TEAM_ID},{self.MISSION_TIME},{self.PACKET_COUNT},{self.MODE},{self.STATE},{self.ALTITUDE},{self.TEMPERATURE},{self.PRESSURE},{self.VOLTAGE},{self.CURRENT},{self.GYRO_R},{self.GYRO_P},{self.GYRO_Y},{self.ACCEL_R},{self.ACCEL_P},{self.ACCEL_Y},{self.GPS_TIME},{self.GPS_ALTITUDE},{self.GPS_LATITUDE},{self.GPS_LONGITUDE},{self.GPS_SATS},{self.CMD_ECHO}"
-
 class App(tk.Tk):
 
     graph_data = [
@@ -108,11 +56,13 @@ class App(tk.Tk):
 
     def __init__(self, TEAM_ID):
 
+        print("[DEBUG] GUI Started")
+
         # Add the TEAM_ID to the global variables
         self.TEAM_ID = TEAM_ID
 
         # Make all the readout variables
-        self.latest_pkt = TelemetryPacket(f"{self.TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
+        self.latest_pkt = telemetryPacket.TelemetryPacket(f"{self.TEAM_ID},{'--:--:--'},{0},{'DANCE'},{'F(LORIDA)'},{''},{'WARM'},{''},{''},{''},{''},{''},{''},{''},{''},{''},{''},{1},{2},{3},{''},{''}")
         self.int_packet_rcv = int(self.latest_pkt.PACKET_COUNT)
         self.int_packet_loss = 0
         self.int_cmd_entry_state = 0
@@ -155,13 +105,13 @@ class App(tk.Tk):
         menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU)
-        menu_commands.add_command(label="CXON", command=lambda:self._send_command("CXON"), font=FONT_MENU) # TODO: Extend the text with a mini description
-        menu_commands.add_command(label="CXOFF", command=lambda:self._send_command("CXOFF"), font=FONT_MENU)
-        menu_commands.add_command(label="ST", command=lambda:self._send_command("ST"), font=FONT_MENU)
-        menu_commands.add_command(label="SIM", command=lambda:self._send_command("SIM"), font=FONT_MENU)
-        menu_commands.add_command(label="SIMP", command=lambda:self._send_command("SIMP"), font=FONT_MENU)
-        menu_commands.add_command(label="CAL", command=lambda:self._send_command("CAL"), font=FONT_MENU)
-        menu_commands.add_command(label="MEC", command=lambda:self._send_command("MEC"), font=FONT_MENU)
+        menu_commands.add_command(label="CX ON", command=lambda:self._send_command("CX_ON"), font=FONT_MENU) # TODO: Extend the text with a mini description
+        menu_commands.add_command(label="CX OFF", command=lambda:self._send_command("CX_OFF"), font=FONT_MENU)
+        menu_commands.add_command(label="SET TIME UTC", command=lambda:self._send_command("ST_UTC"), font=FONT_MENU)
+        menu_commands.add_command(label="SET TIME GPS", command=lambda:self._send_command("ST_GPS"), font=FONT_MENU)
+        menu_commands.add_command(label="SIM ENABLE", command=lambda:self._send_command("SIM_EN"), font=FONT_MENU)
+        menu_commands.add_command(label="SIM DISABLE", command=lambda:self._send_command("SIM_DIS"), font=FONT_MENU)
+        menu_commands.add_command(label="CALIBRATE", command=lambda:self._send_command("CAL"), font=FONT_MENU)
         menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU)
 
         # Create widgets
@@ -401,38 +351,38 @@ class App(tk.Tk):
             self.label_cmd_entry.config(fg="black")
         else:
             match(cmd_str):
-                case "CXON":
-                    self._send_command("CXON")
+                case "CX_ON":
+                    self._send_command("CX_ON")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
-                case "CXOFF":
-                    self._send_command("CXOFF")
+                case "CX_OFF":
+                    self._send_command("CX_OFF")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
-                case "ST":
-                    self._send_command("ST")
+                case "ST_UTC":
+                    self._send_command("ST_UTC")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
-                case "SIM":
-                    self._send_command("SIM")
+                case "ST_GPS":
+                    self._send_command("ST_GPS")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
-                case "SIMP":
-                    self._send_command("SIMP")
+                case "SIM_EN":
+                    self._send_command("SIM_EN")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "SIM_DIS":
+                    self._send_command("SIM_DIS")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "CAL":
                     self._send_command("CAL")
-                    self.int_cmd_entry_state = 1
-                    self.label_cmd_entry.config(fg="green")
-                    self.label_cmd_entry.insert(0, "COMMAND SENT")
-                case "MEC":
-                    self._send_command("MEC")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
@@ -458,9 +408,9 @@ class App(tk.Tk):
         client_socket.close()
 
         # Print the msg to the terminal and start parsing it with the TelemetryPacket class
-        print(f"GUI Recv: {msg}\n")
+        print(f"[DEBUG] GUI Recv: {msg}\n")
         ''' #TODO: Put this back after the new telemetry handler is finished
-        pkt = TelemetryPacket(msg)
+        pkt = telemetryPacket.TelemetryPacket(msg)
 
         if pkt.TEAM_ID != self.TEAM_ID:
             print(f"Someone Else's Packet Received: {msg}\n")
@@ -593,12 +543,13 @@ class App(tk.Tk):
     def _send_command(self,cmd):
         
         # First send some data
-        msg = "Hi"
+        msg = cmd
         sock_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock_out.connect(ADDRESS_TH)
         sock_out.send(msg.encode('utf-8'))
         sock_out.close()
-        print("GUI Sent:", msg)
+        
+        print("[DEBUG] GUI Sent:", msg)
 
         ''' #TODO: Put this back after the new telemetry handler is finished
         print(f"[DEBUG] Command Sent: {cmd}")
