@@ -41,6 +41,7 @@ class TelemetryHandler:
         try:
             self.xbee_device.open()
             self.valid_xbee_connection = True
+            print(f"[DEBUG] XBee Device Open Successful: {self.xbee_port}")
         except Exception as e:
             print(f"[DEBUG] Failed to open XBee device: {e}")
             self.valid_xbee_connection = False
@@ -49,6 +50,7 @@ class TelemetryHandler:
         try:
             self.press_csv_file = open(self.press_csv_path,'rt')
             self.valid_pressure_file = True
+            print(f"[DEBUG] Pressure CSV Open Successful: {self.press_csv_path}")
         except Exception as e:
             print(f"[DEBUG] Failed to open pressure csv file: {e}")
             self.valid_pressure_file = False
@@ -115,6 +117,7 @@ class TelemetryHandler:
                         if xbee_message:
                             line = xbee_message.data.decode('utf-8').strip()
                             self.latest_pkt = telemetryPacket.TelemetryPacket(line)
+                            print(f"[DEBUG LINE]: {line}")
                         else:
                             self.latest_pkt = None
                             print("[DEBUG] Xbee Device Read Timout. (Latest Packet is now \"None\")")
@@ -169,6 +172,7 @@ class TelemetryHandler:
         str = "[DEBUG] DUMMY COMMAND PACKET"
         match (cmd):
             case "CX_ON":
+                #str = ""
                 self._send_packet(str)
             case "CX_OFF":
                 self._send_packet(str)
@@ -201,9 +205,12 @@ class TelemetryHandler:
         return
 
     def _send_packet(self, str):
+        #print("DEBUG BLAHHHHHHHHH")
         if self.valid_xbee_connection:
+            #print("DEBUG BLEHHHHHHHHH")
             try:
                 if self.xbee_device.is_open():
+                    print("BLAHHHHHHH")
                     self.xbee_device.send_data_async(remote_xbee=self.xbee_receiver, data=str)
                 else:
                     print("[DEBUG] Packet Sending Failed, XBEE Closed")

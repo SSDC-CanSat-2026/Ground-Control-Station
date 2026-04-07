@@ -517,9 +517,10 @@ class App(tk.Tk):
             self.axs_3d.set_ylim(min(self.gps_data[1])-10, max(self.gps_data[1])+10)
             self.axs_3d.set_zlim(min(self.gps_data[2])-10, max(self.gps_data[2])+10)
             self.axs_3d.autoscale_view(tight=True, scalex=True, scaley=True, scalez=True)
-        self.canvas.draw()
-        self.canvas_3d.draw()
-        plt.draw()
+        #FIXME: Put back
+        #self.canvas.draw()
+        #self.canvas_3d.draw()
+        #plt.draw()
         return
 
     def demo_graph_print(self):
