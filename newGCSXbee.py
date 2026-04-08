@@ -171,11 +171,13 @@ class TelemetryHandler:
         str = "[DEBUG] DUMMY COMMAND PACKET"
         match (cmd):
             case "CX_ON":
-                #str = ""
+                str = "CMD,1075,CX,ON"
                 self._send_packet(str)
             case "CX_OFF":
+                str = "CMD,1075,CX,OFF"
                 self._send_packet(str)
             case "ST_UTC":
+                
                 self._send_packet(str)
             case "ST_GPS":
                 self._send_packet(str)
