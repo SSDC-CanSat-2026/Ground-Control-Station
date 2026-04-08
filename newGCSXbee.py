@@ -2,6 +2,7 @@ import socket
 import time
 import threading
 import telemetryPacket
+from datetime import datetime, timezone
 from digi.xbee.devices import XBeeDevice, RemoteXBeeDevice, XBee64BitAddress
 
 HOST = 'localhost'
@@ -177,11 +178,14 @@ class TelemetryHandler:
                 str = "CMD,1075,CX,OFF"
                 self._send_packet(str)
             case "ST_UTC":
-                
-                self._send_packet(str)
+                timeUTC = input("Enter your time in hh:mm:ss ")
+                packet_str = f"CMD,1075,ST,{timeUTC}"
+                self._send_packet(packet_str)
             case "ST_GPS":
+                str = "CMD,1075,ST,GPS"
                 self._send_packet(str)
             case "SIM_EN":
+                str = "CMD,1075,SIM,ENABLE" or str = "CMD,1075,SIM,ACTIVATE"
                 self._send_packet(str)
                 if (not self.sim_active and not self.sim_pending):
                     self.sim_pending = True
@@ -193,12 +197,14 @@ class TelemetryHandler:
                 elif (self.sim_active):
                     print("[DEBUG] SIMULATION ALREADY ACTIVE")
             case "SIM_DIS":
+                str = "CMD,1075,SIM,DISABLE"
                 self._send_packet(str)
                 if (not self.sim_active):
                     print("[DEBUG] SIMULATION NOW OFF")
                 self.sim_active = False
                 self.sim_pending = False
             case "CAL":
+                str = "CMD,1075,CAL"
                 self._send_packet(str)
             case _:
                 print("[DEBUG] INVALID COMMAND RECEIVED")
