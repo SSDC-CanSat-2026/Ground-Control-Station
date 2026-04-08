@@ -12,7 +12,7 @@ ADDRESS_GUI = (HOST, PORT_GUI)
 
 class TelemetryHandler:
 
-    def __init__(self, team_id, xbee_port, xbee_baudrate, xbee_mac_addr, press_csv_path=None, log_csv_path=None):
+    def __init__(self, team_id, xbee_port, xbee_baudrate, xbee_target_mac_addr, press_csv_path=None, log_csv_path=None):
 
         # Load some of the init variables
         self.team_id = team_id
@@ -29,9 +29,9 @@ class TelemetryHandler:
         # Initialize XBee connection
         self.xbee_port = xbee_port
         self.xbee_baudrate = xbee_baudrate
-        self.xbee_mac_addr = xbee_mac_addr
+        self.xbee_target_mac_addr = xbee_target_mac_addr
         self.xbee_device = XBeeDevice(self.xbee_port, self.xbee_baudrate)
-        self.xbee_receiver = RemoteXBeeDevice(x64bit_addr=XBee64BitAddress.from_hex_string(self.xbee_mac_addr), local_xbee=self.xbee_device)
+        self.xbee_receiver = RemoteXBeeDevice(x64bit_addr=XBee64BitAddress.from_hex_string(self.xbee_target_mac_addr), local_xbee=self.xbee_device)
 
     def start_telemetry(self):
 
@@ -117,7 +117,6 @@ class TelemetryHandler:
                         if xbee_message:
                             line = xbee_message.data.decode('utf-8').strip()
                             self.latest_pkt = telemetryPacket.TelemetryPacket(line)
-                            print(f"[DEBUG LINE]: {line}")
                         else:
                             self.latest_pkt = None
                             print("[DEBUG] Xbee Device Read Timout. (Latest Packet is now \"None\")")
