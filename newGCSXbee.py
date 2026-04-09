@@ -149,7 +149,7 @@ class TelemetryHandler:
             if (self.sim_pending):
                 self.sim_active = True
                 self.sim_pending = False
-                self._send_packet("[DEBUG] DUMMY COMMAND PACKET")
+                self._send_packet("CMD,1075,SIM,ACTIVATE")
                 print("[DEBUG] SIMULATION NOW ACTIVE")
                 time.sleep(1)
                 continue
@@ -159,6 +159,7 @@ class TelemetryHandler:
                     temp_pressure_str = self.press_csv_file.readline()
                     temp_clean_str = temp_pressure_str.strip("\n")
                     if temp_pressure_str:
+                        self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
                         print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
                         time.sleep(1)
                     else:
@@ -185,7 +186,7 @@ class TelemetryHandler:
                 str = "CMD,1075,ST,GPS"
                 self._send_packet(str)
             case "SIM_EN":
-                str = "CMD,1075,SIM,ENABLE" or str = "CMD,1075,SIM,ACTIVATE"
+                str = "CMD,1075,SIM,ENABLE"
                 self._send_packet(str)
                 if (not self.sim_active and not self.sim_pending):
                     self.sim_pending = True
@@ -199,8 +200,10 @@ class TelemetryHandler:
             case "SIM_DIS":
                 str = "CMD,1075,SIM,DISABLE"
                 self._send_packet(str)
-                if (not self.sim_active):
+                if (self.sim_active):
                     print("[DEBUG] SIMULATION NOW OFF")
+                else:
+                    print("[DEBUG] SIMULATION ALREADY OFF")
                 self.sim_active = False
                 self.sim_pending = False
             case "CAL":
