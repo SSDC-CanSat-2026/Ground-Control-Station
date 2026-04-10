@@ -163,7 +163,7 @@ class TelemetryHandler:
                         print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
                         time.sleep(1)
                     else:
-                        print("[DEBUG] End of Pressure File")
+                        print("[DEBUG] End of Pressure File") #FIXME: MAKE IT SO THAT THE FILE RESETS POSITION WHEN THE SIMULATION IS DISABLED
                         time.sleep(1)
 
         return
@@ -193,6 +193,8 @@ class TelemetryHandler:
                     print("[DEBUG] SIMULATION NOW PENDING")
                     if (not self.valid_pressure_file):
                         print(f"[DEBUG] NO PRESSURE FILE OPEN")
+                    else:
+                        self.press_csv_file.seek(0)
                 elif (self.sim_pending):
                     print("[DEBUG] SIMULATION ALREADY PENDING")
                 elif (self.sim_active):
