@@ -179,8 +179,9 @@ class TelemetryHandler:
                 str = "CMD,1075,CX,OFF"
                 self._send_packet(str)
             case "ST_UTC":
-                timeUTC = input("Enter your time in hh:mm:ss ")
-                packet_str = f"CMD,1075,ST,{timeUTC}"
+                utc_now = datetime.now(timezone.utc)
+                utc_time = utc_now.strftime("%H:%M:%S")
+                packet_str = f"CMD,1075,ST,{utc_time}"
                 self._send_packet(packet_str)
             case "ST_GPS":
                 str = "CMD,1075,ST,GPS"
