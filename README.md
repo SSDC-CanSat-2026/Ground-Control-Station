@@ -10,9 +10,10 @@ The following steps highlight how to start the code:
   - tkinter
     
 By running the following command:
-   - python -m pip install <the package name>
+   - python -m pip install -r requirements.txt
 5. Then run main.py
+   - python main.py
 
+# Resources
 
-
-
+[Cansat Competition Guide 2026](https://cansatcompetition.com/docs/CanSat_Mission_Guide_2026e.pdf)
