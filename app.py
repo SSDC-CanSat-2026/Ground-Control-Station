@@ -409,7 +409,6 @@ class App(tk.Tk):
 
         # Print the msg to the terminal and start parsing it with the TelemetryPacket class
         print(f"[DEBUG] GUI Recv: {msg}\n")
-        ''' #TODO: Put this back after the new telemetry handler is finished
         pkt = telemetryPacket.TelemetryPacket(msg)
 
         if pkt.TEAM_ID != self.TEAM_ID:
@@ -417,7 +416,6 @@ class App(tk.Tk):
         else:
             self.latest_pkt = pkt
             self._update_all()
-        '''
 
         return
 
