@@ -4,12 +4,21 @@ import threading
 import telemetryPacket
 from datetime import datetime, timezone
 from digi.xbee.devices import XBeeDevice, RemoteXBeeDevice, XBee64BitAddress
+import enum
 
 HOST = 'localhost'
 PORT_TH = 6000
 PORT_GUI = 6001
 ADDRESS_TH = (HOST, PORT_TH)
 ADDRESS_GUI = (HOST, PORT_GUI)
+
+class Status(enum.Enum):
+    DISABLED = enum.auto()
+    WAITING_ENABLE = enum.auto()
+    ENABLED = enum.auto()
+    WAITING_ACTIVE = enum.auto()
+    ACTIVE = enum.auto()
+    WAITING_DISABLED = enum.auto()
 
 class TelemetryHandler:
 
@@ -21,8 +30,7 @@ class TelemetryHandler:
 
         # Operation Variables
         self.is_running = True
-        self.sim_active = False
-        self.sim_pending = False
+        self.sim_status = Status.DISABLED
         self.latest_pkt = False
         self.valid_xbee_connection = False
         self.valid_pressure_file = False
@@ -118,6 +126,23 @@ class TelemetryHandler:
                         if xbee_message:
                             line = xbee_message.data.decode('utf-8').strip()
                             self.latest_pkt = telemetryPacket.TelemetryPacket(line)
+                            print(f"[DEBUG PACKET:]{line}")
+
+
+                            #print(f"[DEBUG] Latest Packet Cmd: {self.latest_pkt.CMD_ECHO}")
+
+                            # Update the state of the simulator if it's in a pending state for any modes
+                            if self.latest_pkt.CMD_ECHO == "SIMDIS" and self.sim_status == Status.WAITING_DISABLED:
+                                self.sim_status = Status.DISABLED
+                            elif self.latest_pkt.CMD_ECHO == "SIMENABLE" and self.sim_status == Status.WAITING_ENABLE:
+                                self.sim_status = Status.ENABLED
+                                print("[DEBUG] SIMULATION NOW ENABLED")
+                            elif self.latest_pkt.CMD_ECHO == "SIMACT" and self.sim_status == Status.WAITING_ACTIVE:
+                                if self.latest_pkt.MODE == "S":
+                                    self.sim_status = Status.ACTIVE
+                                    print("[DEBUG] SIMULATION NOW ACTIVE")
+                                else:
+                                    print("[ERROR] FSW RECEIVED ACTIVE REQUEST BUT MODE DID NOT CHANGE")
                         else:
                             self.latest_pkt = None
                             print("[DEBUG] Xbee Device Read Timout. (Latest Packet is now \"None\")")
@@ -133,38 +158,31 @@ class TelemetryHandler:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                     if (not sock.connect_ex(ADDRESS_GUI)):    
-                        sock.send(line.encode('utf-8'))
-                        print("[DEBUG] THL Sent:", line)
+                        #sock.send(line.encode('utf-8'))
+                        #print("[DEBUG] TLH Sent:", line)
                         i += 1
                     else:
-                        print("[DEBUG] THL Failed Send")
+                        print("[DEBUG] TLH Failed Send")
                         1==1
 
                     sock.close()
 
     def _simulation_loop(self):
 
-        while (self.is_running == True):
-
-            if (self.sim_pending):
-                self.sim_active = True
-                self.sim_pending = False
-                self._send_packet("CMD,1075,SIM,ACTIVATE")
-                print("[DEBUG] SIMULATION NOW ACTIVE")
+        while (self.sim_status == Status.ACTIVE):
+            if (self.valid_pressure_file):
+                temp_pressure_str = self.press_csv_file.readline()
+                temp_clean_str = temp_pressure_str.strip("\n")
+                if temp_pressure_str:
+                    self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
+                    print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
+                    time.sleep(1)
+                else:
+                    print("[DEBUG] End of Pressure File")
+                    time.sleep(1)
+            else:
+                print(f"[DEBUG] NO PRESSURE FILE OPEN")
                 time.sleep(1)
-                continue
-
-            if (self.sim_active):
-                if (self.valid_pressure_file):
-                    temp_pressure_str = self.press_csv_file.readline()
-                    temp_clean_str = temp_pressure_str.strip("\n")
-                    if temp_pressure_str:
-                        self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
-                        print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
-                        time.sleep(1)
-                    else:
-                        print("[DEBUG] End of Pressure File") #FIXME: MAKE IT SO THAT THE FILE RESETS POSITION WHEN THE SIMULATION IS DISABLED
-                        time.sleep(1)
 
         return
 
@@ -189,26 +207,66 @@ class TelemetryHandler:
             case "SIM_EN":
                 str = "CMD,1075,SIM,ENABLE"
                 self._send_packet(str)
-                if (not self.sim_active and not self.sim_pending):
-                    self.sim_pending = True
-                    print("[DEBUG] SIMULATION NOW PENDING")
-                    if (not self.valid_pressure_file):
-                        print(f"[DEBUG] NO PRESSURE FILE OPEN")
-                    else:
-                        self.press_csv_file.seek(0)
-                elif (self.sim_pending):
-                    print("[DEBUG] SIMULATION ALREADY PENDING")
-                elif (self.sim_active):
-                    print("[DEBUG] SIMULATION ALREADY ACTIVE")
+                match(self.sim_status):
+                    case Status.DISABLED:
+                        self.sim_status = Status.WAITING_ENABLE
+                        print("[DEBUG] SIMULATION ENABLE NOW PENDING")
+                    case Status.WAITING_ENABLE:
+                        print("[DEBUG] SIMULATION ENABLE ALREADY PENDING (RESENDING)")
+                    case Status.ENABLED:
+                        print("[DEBUG] SIMULATION ALREADY ACTIVE")
+                    case Status.WAITING_ACTIVE:
+                        print("[DEBUG] SIMULATION ALREADY ACTIVE")
+                    case Status.ACTIVE:
+                        print("[DEBUG] SIMULATION ALREADY ENABLED AND ACTIVE")
+                    case Status.WAITING_DISABLED:
+                        print("[DEBUG] CAN'T ENABLE, SIMULATION DISABLE PENDING")
+                    case _:
+                        print("[ERROR] SIM STATUS IN INVALID STATE")
+            case "SIM_ACT":
+                str = "CMD,1075,SIM,ACTIVATE"
+                self._send_packet(str)
+                match(self.sim_status):
+                    case Status.DISABLED:
+                        print("[DEBUG] SIMULATION IS OFF")
+                    case Status.WAITING_ENABLE:
+                        print("[DEBUG] SIMULATION ENABLE STILL PENDING")
+                    case Status.ENABLED:
+                        self.sim_status = Status.WAITING_ACTIVE
+                        print("[DEBUG] SIMULATION ACTIVE NOW PENDING")
+                    case Status.WAITING_ACTIVE:
+                        print("[DEBUG] SIMULATION ACTIVE ALREADY PENDING (RESENDING)")
+                    case Status.ACTIVE:
+                        print("[DEBUG] SIMULATION ALREADY ACTIVE")
+                    case Status.WAITING_DISABLED:
+                        print("[DEBUG] CAN'T ACTIVATE, SIMULATION DISABLE PENDING")
+                    case _:
+                        print("[ERROR] SIM STATUS IN INVALID STATE")
             case "SIM_DIS":
+                self.press_csv_file.seek(0) #Resets the the pressure file's position anytime simulation is disabled to allow reruns
                 str = "CMD,1075,SIM,DISABLE"
                 self._send_packet(str)
-                if (self.sim_active):
-                    print("[DEBUG] SIMULATION NOW OFF")
-                else:
-                    print("[DEBUG] SIMULATION ALREADY OFF")
-                self.sim_active = False
-                self.sim_pending = False
+                match(self.sim_status):
+                    case Status.DISABLED:
+                        print("[DEBUG] SIMULATION IS ALREADY OFF")
+                    case Status.WAITING_ENABLE:
+                        self.sim_status = Status.WAITING_DISABLED
+                        print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
+                    case Status.ENABLED:
+                        self.sim_status = Status.WAITING_DISABLED
+                        print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
+                    case Status.WAITING_ACTIVE:
+                        self.sim_status = Status.WAITING_DISABLED
+                        print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
+                    case Status.ACTIVE:
+                        self.sim_status = Status.WAITING_DISABLED
+                        print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
+                    case Status.WAITING_DISABLED:
+                        self.sim_status = Status.WAITING_DISABLED
+                        print("[DEBUG] SIMULATION DISABLE STILL PENDING (RESENDING)")
+                    case _:
+                        print(f"[ERROR] SIM STATUS IN INVALID STATE {self.sim_status}, SET TO DISABLED")
+                        self.sim_status = Status.DISABLED
             case "CAL":
                 str = "CMD,1075,CAL"
                 self._send_packet(str)
@@ -223,7 +281,7 @@ class TelemetryHandler:
             #print("DEBUG BLEHHHHHHHHH")
             try:
                 if self.xbee_device.is_open():
-                    print("BLAHHHHHHH")
+                    #print("BLOHHHHHHH")
                     self.xbee_device.send_data_async(remote_xbee=self.xbee_receiver, data=str)
                 else:
                     print("[DEBUG] Packet Sending Failed, XBEE Closed")

@@ -6,11 +6,11 @@ if __name__ == "__main__":
 
     # Initliaze Main Variables
     TEAM_ID = "1075" #TEAM_ID = "3174" # Last Year's team number
-    DEVICE_FILE = "/dev/tty.usbserial-B0025AKB"
+    DEVICE_FILE = "/dev/tty.usbserial-B0025E87"
     BAUDRATE = 9600
     LOG_FILE = "./test.csv"
     PRESSURE_FILE = "./test.csv"
-    XBEE_MAC_ADDR = "0013A200425E92E9"
+    XBEE_MAC_ADDR = "0013A200427469EA"
     
     # Create the GUI and telemetry handler objects
     gui_app = app.App(TEAM_ID)
