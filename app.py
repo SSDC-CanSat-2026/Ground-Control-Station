@@ -408,7 +408,7 @@ class App(tk.Tk):
         client_socket.close()
 
         # Print the msg to the terminal and start parsing it with the TelemetryPacket class
-        print(f"[DEBUG] GUI Recv: {msg}\n")
+        #print(f"[DEBUG] GUI Recv: {msg}\n")
         pkt = telemetryPacket.TelemetryPacket(msg)
 
         if pkt.TEAM_ID != self.TEAM_ID:

@@ -126,10 +126,7 @@ class TelemetryHandler:
                         if xbee_message:
                             line = xbee_message.data.decode('utf-8').strip()
                             self.latest_pkt = telemetryPacket.TelemetryPacket(line)
-                            print(f"[DEBUG PACKET:]{line}")
-
-
-                            #print(f"[DEBUG] Latest Packet Cmd: {self.latest_pkt.CMD_ECHO}")
+                            print(f"[DEBUG PACKET:]{line}\n")
 
                             # Update the state of the simulator if it's in a pending state for any modes
                             if self.latest_pkt.CMD_ECHO == "SIMDIS" and self.sim_status == Status.WAITING_DISABLED:
@@ -158,7 +155,7 @@ class TelemetryHandler:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                     if (not sock.connect_ex(ADDRESS_GUI)):    
-                        #sock.send(line.encode('utf-8'))
+                        sock.send(line.encode('utf-8'))
                         #print("[DEBUG] TLH Sent:", line)
                         i += 1
                     else:
