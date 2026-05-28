@@ -94,17 +94,17 @@ class App(tk.Tk):
         menu_help = tk.Menu(menubar, tearoff=False)
 
         # Create tabs from those objects
-        menubar.add_cascade(label="File", menu=menu_file, font=FONT_MENU) # TODO: Add a view csv button
-        menubar.add_cascade(label="Options", menu=menu_options, font=FONT_MENU)
-        menubar.add_cascade(label="Food", menu=menu_food, font=FONT_MENU)
-        menubar.add_cascade(label="CMD", menu=menu_commands, font=FONT_MENU)
-        menubar.add_cascade(label="Help", menu=menu_help, font=FONT_MENU)
+        menubar.add_cascade(label="File", menu=menu_file, font=FONT_MENU, underline=0) # TODO: Add a view csv button
+        menubar.add_cascade(label="Options", menu=menu_options, font=FONT_MENU, underline=0)
+        menubar.add_cascade(label="Food", menu=menu_food, font=FONT_MENU, underline=3)
+        menubar.add_cascade(label="CMD", menu=menu_commands, font=FONT_MENU, underline=0)
+        menubar.add_cascade(label="Help", menu=menu_help, font=FONT_MENU, underline=0)
 
         # Tack functions to those tabs 
-        menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU)
-        menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU)
-        menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU)
-        menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU)
+        menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU, underline=0)
+        menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU, underline=0)
+        menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
+        menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
         menu_commands.add_command(label="CX ON", command=lambda:self._send_command("CX_ON"), font=FONT_MENU) # TODO: Extend the text with a mini description
         menu_commands.add_command(label="CX OFF", command=lambda:self._send_command("CX_OFF"), font=FONT_MENU)
         menu_commands.add_command(label="SET TIME UTC", command=lambda:self._send_command("ST_UTC"), font=FONT_MENU)
@@ -112,7 +112,7 @@ class App(tk.Tk):
         menu_commands.add_command(label="SIM ENABLE", command=lambda:self._send_command("SIM_EN"), font=FONT_MENU)
         menu_commands.add_command(label="SIM DISABLE", command=lambda:self._send_command("SIM_DIS"), font=FONT_MENU)
         menu_commands.add_command(label="CALIBRATE", command=lambda:self._send_command("CAL"), font=FONT_MENU)
-        menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU)
+        menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU, underline=0)
 
         # Create widgets
         label1 = tk.Label(self, text="Single Data Info [DEBUG]", background="red", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
@@ -516,9 +516,9 @@ class App(tk.Tk):
             self.axs_3d.set_zlim(min(self.gps_data[2])-10, max(self.gps_data[2])+10)
             self.axs_3d.autoscale_view(tight=True, scalex=True, scaley=True, scalez=True)
         #FIXME: Put back
-        #self.canvas.draw()
-        #self.canvas_3d.draw()
-        #plt.draw()
+        self.canvas.draw()
+        self.canvas_3d.draw()
+        plt.draw()
         return
 
     def demo_graph_print(self):
