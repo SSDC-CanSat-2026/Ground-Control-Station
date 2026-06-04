@@ -110,6 +110,7 @@ class App(tk.Tk):
         menu_commands.add_command(label="SET TIME UTC", command=lambda:self._send_command("ST_UTC"), font=FONT_MENU)
         menu_commands.add_command(label="SET TIME GPS", command=lambda:self._send_command("ST_GPS"), font=FONT_MENU)
         menu_commands.add_command(label="SIM ENABLE", command=lambda:self._send_command("SIM_EN"), font=FONT_MENU)
+        menu_commands.add_command(label="SIM ACTIVATE", command=lambda:self._send_command("SIM_ACT"), font=FONT_MENU)
         menu_commands.add_command(label="SIM DISABLE", command=lambda:self._send_command("SIM_DIS"), font=FONT_MENU)
         menu_commands.add_command(label="CALIBRATE", command=lambda:self._send_command("CAL"), font=FONT_MENU)
         menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU, underline=0)
@@ -373,6 +374,11 @@ class App(tk.Tk):
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case "SIM_EN":
                     self._send_command("SIM_EN")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "SIM_ACT":
+                    self._send_command("SIM_ACT")
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")

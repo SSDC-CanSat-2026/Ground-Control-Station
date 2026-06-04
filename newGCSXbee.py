@@ -31,6 +31,7 @@ class TelemetryHandler:
         # Operation Variables
         self.is_running = True
         self.sim_status = Status.DISABLED
+        self.sim_disable_confirm = False
         self.latest_pkt = False
         self.valid_xbee_connection = False
         self.valid_pressure_file = False
@@ -129,8 +130,9 @@ class TelemetryHandler:
                             print(f"[DEBUG PACKET:]{line}\n")
 
                             # Update the state of the simulator if it's in a pending state for any modes
-                            if self.latest_pkt.CMD_ECHO == "SIMDIS" and self.sim_status == Status.WAITING_DISABLED:
-                                self.sim_status = Status.DISABLED
+                            if self.latest_pkt.CMD_ECHO == "SIMDIS" and self.sim_status == Status.DISABLED and self.sim_disable_pending == True:
+                                self.sim_disable_pending = False
+                                print("[DEBUG] FSW SIMULATION DISABLE CONFIRMED")
                             elif self.latest_pkt.CMD_ECHO == "SIMENABLE" and self.sim_status == Status.WAITING_ENABLE:
                                 self.sim_status = Status.ENABLED
                                 print("[DEBUG] SIMULATION NOW ENABLED")
@@ -243,24 +245,22 @@ class TelemetryHandler:
                 self.press_csv_file.seek(0) #Resets the the pressure file's position anytime simulation is disabled to allow reruns
                 str = "CMD,1075,SIM,DISABLE"
                 self._send_packet(str)
+                self.sim_disable_pending = True
                 match(self.sim_status):
                     case Status.DISABLED:
                         print("[DEBUG] SIMULATION IS ALREADY OFF")
                     case Status.WAITING_ENABLE:
-                        self.sim_status = Status.WAITING_DISABLED
+                        self.sim_status = Status.DISABLED
                         print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
                     case Status.ENABLED:
-                        self.sim_status = Status.WAITING_DISABLED
+                        self.sim_status = Status.DISABLED
                         print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
                     case Status.WAITING_ACTIVE:
-                        self.sim_status = Status.WAITING_DISABLED
+                        self.sim_status = Status.DISABLED
                         print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
                     case Status.ACTIVE:
-                        self.sim_status = Status.WAITING_DISABLED
+                        self.sim_status = Status.DISABLED
                         print("[DEBUG] SIMULATION DISABLE NOW PENDING, LOCAL SIM DISABLED")
-                    case Status.WAITING_DISABLED:
-                        self.sim_status = Status.WAITING_DISABLED
-                        print("[DEBUG] SIMULATION DISABLE STILL PENDING (RESENDING)")
                     case _:
                         print(f"[ERROR] SIM STATUS IN INVALID STATE {self.sim_status}, SET TO DISABLED")
                         self.sim_status = Status.DISABLED
@@ -280,6 +280,7 @@ class TelemetryHandler:
                 if self.xbee_device.is_open():
                     #print("BLOHHHHHHH")
                     self.xbee_device.send_data_async(remote_xbee=self.xbee_receiver, data=str)
+                    print(f"[DEBUG] CMD: \"{str}\" Sent")
                 else:
                     print("[DEBUG] Packet Sending Failed, XBEE Closed")
             except Exception as e:

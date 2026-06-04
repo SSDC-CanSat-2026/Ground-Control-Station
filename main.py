@@ -8,9 +8,10 @@ if __name__ == "__main__":
     TEAM_ID = "1075" #TEAM_ID = "3174" # Last Year's team number
     DEVICE_FILE = "/dev/tty.usbserial-B0025E87"
     BAUDRATE = 9600
-    LOG_FILE = "./test.csv"
-    PRESSURE_FILE = "./test.csv"
-    XBEE_MAC_ADDR = "0013A200427469EA"
+    LOG_FILE = "./test_out.csv"
+    PRESSURE_FILE = "./test_in.csv"
+    #XBEE_MAC_ADDR = "0013A200427469EA" #CANSAT
+    XBEE_MAC_ADDR = "0013A200423D8F47" #TEST RADIO
     
     # Create the GUI and telemetry handler objects
     gui_app = app.App(TEAM_ID)
