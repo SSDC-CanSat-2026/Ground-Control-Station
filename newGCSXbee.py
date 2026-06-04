@@ -27,6 +27,7 @@ class TelemetryHandler:
         # Load some of the init variables
         self.team_id = team_id
         self.press_csv_path = press_csv_path
+        self.log_csv_path = log_csv_path
 
         # Operation Variables
         self.is_running = True
@@ -35,6 +36,7 @@ class TelemetryHandler:
         self.latest_pkt = False
         self.valid_xbee_connection = False
         self.valid_pressure_file = False
+        self.valid_log_file = False
 
         # Initialize XBee connection
         self.xbee_port = xbee_port
@@ -62,8 +64,19 @@ class TelemetryHandler:
             self.valid_pressure_file = True
             print(f"[DEBUG] Pressure CSV Open Successful: {self.press_csv_path}")
         except Exception as e:
-            print(f"[DEBUG] Failed to open pressure csv file: {e}")
+            print(f"[DEBUG] Failed to Open Pressure CSV File: {e}")
+            self.press_csv_file = None
             self.valid_pressure_file = False
+
+        # Open the log file
+        try:
+            self.log_csv_file = open(self.log_csv_path,'wta')
+            self.valid_log_file = True
+            print(f"[DEBUG] Log CSV Open Successful: {self.log_csv_path}")
+        except Exception as e:
+            print(f"[DEBUG] Failed to Open Log CSV File: {e}")
+            self.log_csv_file = None
+            self.valid_log_file = False 
 
         # Create the three threads, one for monitoring the incoming commands, one for running the main execution loop that sends data to the GUI, one for running the simulation loop when in simulation mode
         # Seperate threads are necessary for each operation as they needs to be "Asynchronous" because they are time sensitive
@@ -128,6 +141,8 @@ class TelemetryHandler:
                             line = xbee_message.data.decode('utf-8').strip()
                             self.latest_pkt = telemetryPacket.TelemetryPacket(line)
                             print(f"[DEBUG PACKET:]{line}\n")
+                            if (self.valid_log_file):
+                                self.log_csv_file.write(self.latest_pkt.get_str())
 
                             # Update the state of the simulator if it's in a pending state for any modes
                             if self.latest_pkt.CMD_ECHO == "SIMDIS" and self.sim_status == Status.DISABLED and self.sim_disable_pending == True:
@@ -267,6 +282,30 @@ class TelemetryHandler:
             case "CAL":
                 str = "CMD,1075,CAL"
                 self._send_packet(str)
+            case "REOPEN_PRESSURE":
+                if (self.press_csv_file):
+                    self.press_csv_file.close()
+                self.valid_pressure_file = False
+                # Re-open the pressure file
+                try:
+                    self.press_csv_file = open(self.press_csv_path,'rt')
+                    self.valid_pressure_file = True
+                    print(f"[DEBUG] Pressure CSV Re-open Successful: {self.press_csv_path}")
+                except Exception as e:
+                    print(f"[DEBUG] Failed to Re-open Pressure CSV File: {e}")
+                    self.valid_pressure_file = False
+            case "REOPEN_LOG":
+                if (self.log_csv_file):
+                    self.log_csv_file.close()
+                self.valid_log_file = False
+                # Re-open the log file
+                try:
+                    self.log_csv_file = open(self.log_csv_path,'wta')
+                    self.valid_log_file = True
+                    print(f"[DEBUG] Log CSV Re-open Successful: {self.log_csv_path}")
+                except Exception as e:
+                    print(f"[DEBUG] Failed to Re-open Log CSV File: {e}")
+                    self.valid_log_file = False 
             case _:
                 print("[DEBUG] INVALID COMMAND RECEIVED")
 

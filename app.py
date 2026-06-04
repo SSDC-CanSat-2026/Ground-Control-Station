@@ -102,6 +102,8 @@ class App(tk.Tk):
 
         # Tack functions to those tabs 
         menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Reopen Pressure File", command=lambda:self._send_command("REOPEN_PRESSURE"), font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Reopen Log File", command=lambda:self._send_command("REOPEN_LOG"), font=FONT_MENU, underline=0)
         menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
