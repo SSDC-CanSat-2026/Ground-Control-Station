@@ -9,7 +9,7 @@ if __name__ == "__main__":
     DEVICE_FILE = "/dev/tty.usbserial-B0025E87"
     BAUDRATE = 9600
     LOG_FILE = "./test_out.csv"
-    PRESSURE_FILE = "./test_in.csv"
+    PRESSURE_FILE = "./SIM_Pressure.csv"
     XBEE_MAC_ADDR = "0013A200427469BF" #CANSAT
     #XBEE_MAC_ADDR = "0013A200423D8F47" #TEST RADIO
     

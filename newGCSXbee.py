@@ -13,6 +13,14 @@ ADDRESS_TH = (HOST, PORT_TH)
 ADDRESS_GUI = (HOST, PORT_GUI)
 DEFAULT_PRESSURE = 101325
 
+# Colors
+CRED = '\033[91m'
+CGREEN = '\033[92m'
+CYELLOW = '\033[93m'
+CBLUE = '\033[94m'
+CCYAN = '\033[96m'
+CRESET = '\033[0m'
+
 class Status(enum.Enum):
     DISABLED = enum.auto()
     WAITING_ENABLE = enum.auto()
@@ -71,7 +79,7 @@ class TelemetryHandler:
 
         # Open the log file
         try:
-            self.log_csv_file = open(self.log_csv_path,'ta')
+            self.log_csv_file = open(self.log_csv_path,"a", encoding="utf-8")
             self.valid_log_file = True
             print(f"[DEBUG] Log CSV Open Successful: {self.log_csv_path}")
         except Exception as e:
@@ -141,21 +149,24 @@ class TelemetryHandler:
                         if xbee_message:
                             line = xbee_message.data.decode('utf-8').strip()
                             self.latest_pkt = telemetryPacket.TelemetryPacket(line)
-                            print(f"[DEBUG PACKET:]{line}\n")
+                            print(f"[DEBUG PACKET:]{line}")
                             if (self.valid_log_file):
-                                self.log_csv_file.write(self.latest_pkt.get_str())
+                                print("[DEBUG] LOGGED THE PACKET")
+                                self.log_csv_file.write(f"{self.latest_pkt.get_str()}\n")
+                                self.log_csv_file.flush()
+                            print("")
 
                             # Update the state of the simulator if it's in a pending state for any modes
                             if self.latest_pkt.CMD_ECHO == "SIMDIS" and self.sim_status == Status.DISABLED and self.sim_disable_pending == True:
                                 self.sim_disable_pending = False
-                                print("[DEBUG] FSW SIMULATION DISABLE CONFIRMED")
+                                print(f"{CYELLOW}[INFO] FSW SIMULATION DISABLE CONFIRMED{CRESET}")
                             elif self.latest_pkt.CMD_ECHO == "SIMENABLE" and self.sim_status == Status.WAITING_ENABLE:
                                 self.sim_status = Status.ENABLED
-                                print("[DEBUG] SIMULATION NOW ENABLED")
+                                print(f"{CYELLOW}[INFO] SIMULATION NOW ENABLED{CRESET}")
                             elif self.latest_pkt.CMD_ECHO == "SIMACT" and self.sim_status == Status.WAITING_ACTIVE:
                                 if self.latest_pkt.MODE == "S":
                                     self.sim_status = Status.ACTIVE
-                                    print("[DEBUG] SIMULATION NOW ACTIVE")
+                                    print(f"{CGREEN}[INFO] SIMULATION NOW ACTIVE{CRESET}")
                                 else:
                                     print("[ERROR] FSW RECEIVED ACTIVE REQUEST BUT MODE DID NOT CHANGE")
                         else:
@@ -194,16 +205,16 @@ class TelemetryHandler:
                     temp_clean_str = temp_pressure_str.strip("\n")
                     if temp_pressure_str:
                         self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
-                        print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
+                        print(f"{CCYAN}[DEBUG] Pressure Packet: {temp_clean_str}{CRESET}")
                         time.sleep(1)
                     else:
-                        print("[DEBUG] End of Pressure File")
+                        print(f"{CBLUE}[DEBUG] End of Pressure File{CRESET}")
                         time.sleep(1)
                 else:
                     #print(f"[DEBUG] NO PRESSURE FILE OPEN")
                     temp_clean_str = str(DEFAULT_PRESSURE)
                     self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
-                    print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
+                    print(f"{CCYAN}[DEBUG] Pressure Packet: {temp_clean_str}{CRESET}")
                     time.sleep(1)
 
         return
@@ -267,7 +278,7 @@ class TelemetryHandler:
                     case _:
                         print("[ERROR] SIM STATUS IN INVALID STATE")
             case "SIM_DIS":
-                if self.press_csv_file:
+                if self.press_csv_file and self.valid_pressure_file:
                     self.press_csv_file.seek(0) #Resets the the pressure file's position anytime simulation is disabled to allow reruns
                 str = "CMD,1075,SIM,DISABLE"
                 self._send_packet(str)
@@ -330,7 +341,7 @@ class TelemetryHandler:
                 self.valid_log_file = False
                 # Re-open the log file
                 try:
-                    self.log_csv_file = open(self.log_csv_path,'ta')
+                    self.log_csv_file = open(self.log_csv_path,"a", encoding="utf-8")
                     self.valid_log_file = True
                     print(f"[DEBUG] Log CSV Re-open Successful: {self.log_csv_path}")
                 except Exception as e:
