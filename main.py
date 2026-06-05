@@ -6,7 +6,8 @@ if __name__ == "__main__":
 
     # Initliaze Main Variables
     TEAM_ID = "1075" #TEAM_ID = "3174" # Last Year's team number
-    DEVICE_FILE = "/dev/tty.usbserial-B0025E87"
+    DEVICE_FILE = "/dev/tty.usbserial-B0025E87" #MACINTOSH
+    #DEVICE_FILE = "/dev/ttyUSB0" #RASP-PI
     BAUDRATE = 9600
     LOG_FILE = "./test_out.csv"
     PRESSURE_FILE = "./SIM_Pressure.csv"
