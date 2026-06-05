@@ -80,9 +80,6 @@ class App(tk.Tk):
         height = self.winfo_screenheight()
         self.geometry("%dx%d" % (width/2, height)) # Sets the dimensions of the window to those screen dimensions
 
-        # Linux Version of Zoom
-        self.state('zoomed')
-
         # Create a toggle function for fullscreen
         def toggle_fullscreen_func(event=None):
             # Check the current status and invert it
@@ -204,31 +201,35 @@ class App(tk.Tk):
         label4 = tk.Label(self, text="Logos Field [DEBUG]", background="lime", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
 
         # Scalar widgets (Mission Guide G8)
+            # Larger Row Frames
+        label_scalar_top = tk.Label(label1, text="Single Data Top [DEBUG]", background="pink", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
+        label_scalar_bottom = tk.Label(label1, text="Single Data Bottom [DEBUG]", background="purple", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
             # TEAM_ID, MISSION_TIME, TEMPERATURE, GPS_POSITION, PACKET_RCV, PACKET_LOSS, FLIGHT_STATE, FLIGHT_MODE
                 # Stubs
-        label_stub_team_id = tk.Label(label1, text="Team ID:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_mission_time = tk.Label(label1, text="Mission Time:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_temperature = tk.Label(label1, text="Temp (°C):", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_gps_pos = tk.Label(label1, text="GPS (Lat/Long/Alt):", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_packet_rcv = tk.Label(label1, text="Packets Received:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_packet_loss = tk.Label(label1, text="Packets Lost:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_flight_state = tk.Label(label1, text="Flight State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_flight_mode = tk.Label(label1, text="Flight Mode:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_team_id = tk.Label(label_scalar_top, text="Team ID:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_mission_time = tk.Label(label_scalar_top, text="Mission Time:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_temperature = tk.Label(label_scalar_top, text="Temp (°C):", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_gps_pos = tk.Label(label_scalar_top, text="GPS (Lat/Long/Alt):", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_packet_rcv = tk.Label(label_scalar_bottom, text="Packets Received:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_packet_loss = tk.Label(label_scalar_bottom, text="Packets Lost:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_flight_state = tk.Label(label_scalar_bottom, text="Flight State:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_flight_mode = tk.Label(label_scalar_bottom, text="Flight Mode:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
                 # Values
-        label_team_id = tk.Label(label1, text=str(self.latest_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
-        self.label_mission_time = tk.Label(label1, text=self.latest_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_temperature = tk.Label(label1, text=self.latest_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_gps_pos = tk.Label(label1, text=f"{(float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
-        self.label_packet_rcv = tk.Label(label1, text=self.int_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_packet_loss = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_flight_state = tk.Label(label1, text=self.latest_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
-        self.label_flight_mode = tk.Label(label1, text=self.latest_pkt.MODE, font=FONT_TEXT_BOLD, anchor="center")
-                # Command Frame Pieces
+        label_team_id = tk.Label(label_scalar_top, text=str(self.latest_pkt.TEAM_ID), font=FONT_TEXT_BOLD, anchor="center")
+        self.label_mission_time = tk.Label(label_scalar_top, text=self.latest_pkt.MISSION_TIME, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_temperature = tk.Label(label_scalar_top, text=self.latest_pkt.TEMPERATURE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_gps_pos = tk.Label(label_scalar_top, text=f"{(float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE))}", font=FONT_TEXT_BOLD, anchor="center")
+        self.label_packet_rcv = tk.Label(label_scalar_bottom, text=self.int_packet_rcv, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_packet_loss = tk.Label(label_scalar_bottom, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_state = tk.Label(label_scalar_bottom, text=self.latest_pkt.STATE, font=FONT_TEXT_BOLD, anchor="center")
+        self.label_flight_mode = tk.Label(label_scalar_bottom, text=self.latest_pkt.MODE, font=FONT_TEXT_BOLD, anchor="center")
+            # Command Frame
         label_cmd_frame = tk.Label(label1, text="CMD FRAME [DEBUG]", font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, anchor="center")
-        label_stub_cmd = tk.Label(label_cmd_frame, text="Command Input:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+                # Command Frame Pieces
+        label_stub_cmd = tk.Label(label_cmd_frame, text="CMD Input:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_entry = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20)
         label_cmd_button = tk.Button(label_cmd_frame, text="Send", font=FONT_TITLE, bg=COLOR_BG_GRAY, command=self._cmd_button_callback)
-        label_stub_echo = tk.Label(label_cmd_frame, text="Command Echo:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_echo = tk.Label(label_cmd_frame, text="CMD Echo:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_echo = tk.Entry(label_cmd_frame, font=FONT_TEXT_BOLD, bg=COLOR_BG_GRAY, width=20, state="readonly")
         
         # Bind the FocusIn callback to the entry field to remove the feedback messages I print in there
@@ -256,9 +257,9 @@ class App(tk.Tk):
         self.axs_3d = self.fig_3d.add_subplot(111, projection='3d') # Designates the axes as a 3d plot
         self.graph3d_line = None
         self.axs_3d.set_title('GPS Position', fontsize=14, fontweight='bold') # Plot title
-        self.axs_3d.set_xlabel('Latitude (deg)', fontsize=14) # X-axis
-        self.axs_3d.set_ylabel('Longitude (deg)', fontsize=14) # Y-axis
-        self.axs_3d.set_zlabel('Altitude (m)', fontsize=14) # Z-axis
+        self.axs_3d.set_xlabel('Lat. (deg)', fontsize=14) # X-axis
+        self.axs_3d.set_ylabel('Long. (deg)', fontsize=14) # Y-axis
+        self.axs_3d.set_zlabel('Alt. (m)', fontsize=14) # Z-axis
         self.axs_3d.set_facecolor(COLOR_BG_GRAY)
         self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2], color='blue')
         self.axs_3d.view_init(azim=80)
@@ -302,15 +303,24 @@ class App(tk.Tk):
         self.columnconfigure(0, weight=6, uniform='a')
         self.columnconfigure(1, weight=2, uniform='a')
             # Label 1 (Scalar Widgets) Layout
-        label1.rowconfigure(0, weight=1, uniform='a')
-        label1.rowconfigure(1, weight=1, uniform='a')
+        label1.rowconfigure(0, weight=2, uniform='a')
+        label1.rowconfigure(1, weight=2, uniform='a')
         label1.rowconfigure(2, weight=1, uniform='a')
-        label1.rowconfigure(3, weight=1, uniform='a')
-        label1.rowconfigure(4, weight=1, uniform='a')
         label1.columnconfigure(0, weight=1, uniform='a')
-        label1.columnconfigure(1, weight=1, uniform='a')
-        label1.columnconfigure(2, weight=1, uniform='a')
-        label1.columnconfigure(3, weight=1, uniform='a')
+            # Label 1 Top Row Layout
+        label_scalar_top.rowconfigure(0, weight=1, uniform='a')
+        label_scalar_top.rowconfigure(1, weight=1, uniform='a')
+        label_scalar_top.columnconfigure(0, weight=1, uniform='a')
+        label_scalar_top.columnconfigure(1, weight=1, uniform='a')
+        label_scalar_top.columnconfigure(2, weight=1, uniform='a')
+        label_scalar_top.columnconfigure(3, weight=2, uniform='a')
+            # Label 1 Bottom Row Layout
+        label_scalar_bottom.rowconfigure(0, weight=1, uniform='a')
+        label_scalar_bottom.rowconfigure(1, weight=1, uniform='a')
+        label_scalar_bottom.columnconfigure(0, weight=1, uniform='a')
+        label_scalar_bottom.columnconfigure(1, weight=1, uniform='a')
+        label_scalar_bottom.columnconfigure(2, weight=1, uniform='a')
+        label_scalar_bottom.columnconfigure(3, weight=1, uniform='a')
             # Cmd Frame (Command Pieces) Layout
         label_cmd_frame.rowconfigure(0, weight=1, uniform='a')
         label_cmd_frame.columnconfigure(0, weight=1, uniform='a')
@@ -334,27 +344,31 @@ class App(tk.Tk):
         label2.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
         label3.grid(row = 1, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
         label4.grid(row = 0, column = 1, columnspan = 1, rowspan=1, sticky="nsew")
+            # Scalar Rows
+        label_scalar_top.grid(row = 0, column = 0, sticky="nsew")
+        label_scalar_bottom.grid(row = 1, column = 0, sticky="nsew")
             # Scalar Status labels
                 # Stubs
         label_stub_team_id.grid(row = 0, column = 0, sticky="nsew")
         label_stub_mission_time.grid(row = 0, column = 1, sticky="nsew")
         label_stub_temperature.grid(row = 0, column = 2, sticky="nsew")
-        label_stub_gps_pos.grid(row = 0, column = 3, sticky="nsew")
-        label_stub_packet_rcv.grid(row = 2, column = 0, sticky="nsew")
-        label_stub_packet_loss.grid(row = 2, column = 1, sticky="nsew")
-        label_stub_flight_state.grid(row = 2, column = 2, sticky="nsew")
-        label_stub_flight_mode.grid(row = 2, column = 3, sticky="nsew")
+        label_stub_gps_pos.grid(row = 0, column = 3, columnspan = 2, sticky="nsew")
+        label_stub_packet_rcv.grid(row = 0, column = 0, sticky="nsew")
+        label_stub_packet_loss.grid(row = 0, column = 1, sticky="nsew")
+        label_stub_flight_state.grid(row = 0, column = 2, sticky="nsew")
+        label_stub_flight_mode.grid(row = 0, column = 3, sticky="nsew")
                 # Values
         label_team_id.grid(row = 1, column = 0, sticky="nsew")
         self.label_mission_time.grid(row = 1, column = 1, sticky="nsew")
         self.label_temperature.grid(row = 1, column = 2, sticky="nsew")
         self.label_gps_pos.grid(row = 1, column = 3, sticky="nsew")
-        self.label_packet_rcv.grid(row = 3, column = 0, sticky="nsew")
-        self.label_packet_loss.grid(row = 3, column = 1, sticky="nsew")
-        self.label_flight_state.grid(row = 3, column = 2, sticky="nsew")
-        self.label_flight_mode.grid(row = 3, column = 3, sticky="nsew")
-                # Command Frame
-        label_cmd_frame.grid(row = 4, column = 0, columnspan = 4, sticky="nsew")
+        self.label_packet_rcv.grid(row = 1, column = 0, sticky="nsew")
+        self.label_packet_loss.grid(row = 1, column = 1, sticky="nsew")
+        self.label_flight_state.grid(row = 1, column = 2, sticky="nsew")
+        self.label_flight_mode.grid(row = 1, column = 3, sticky="nsew")
+            # Command Frame
+        label_cmd_frame.grid(row = 2, column = 0, sticky="nsew")
+                # Command Frame Widgets
         label_stub_cmd.grid(row=0, column=0, sticky="nsew")
         self.label_cmd_entry.grid(row=0, column=1, sticky="nsew")
         label_cmd_button.grid(row=0, column=2, sticky="nsew")
