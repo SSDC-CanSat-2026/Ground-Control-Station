@@ -81,7 +81,17 @@ class App(tk.Tk):
         self.geometry("%dx%d" % (width/2, height)) # Sets the dimensions of the window to those screen dimensions
 
         # Linux Version of Zoom
-        #self.state('zoomed')
+        self.state('zoomed')
+
+        # Create a toggle function for fullscreen
+        def toggle_fullscreen_func(event=None):
+            # Check the current status and invert it
+            current_state = self.attributes('-fullscreen')
+            self.attributes('-fullscreen', not current_state)
+
+        # Start the window in fullscreen
+        self.attributes('-fullscreen', True)
+        self.bind('<F11>', toggle_fullscreen_func)
 
         # Create the main menubar and assign as the root's menu
         menubar = tk.Menu(self)
@@ -226,7 +236,7 @@ class App(tk.Tk):
 
         # Graph and Command Confirm widgets
         self.label_graph3D = tk.Label(label3, text="3D Graph Field [DEBUG]", background="orange", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
-        label_stub_cmd_last = tk.Label(label3, text="Last Command:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        label_stub_cmd_last = tk.Label(label3, text="Last Sent Command:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
         self.label_cmd_last = tk.Label(label3, text=self.latest_sent_command, font=FONT_TEXT_BOLD, anchor="center")
 
         # Plot widgets (Mission Guide G7)
