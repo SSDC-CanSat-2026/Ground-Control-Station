@@ -301,7 +301,7 @@ class TelemetryHandler:
                 else:
                     print("[ERROR] INVALID MECH FORMAT RECEIVED")
             # Fake commands
-            case "REOPEN_RADIO":
+            case "*REOPEN_RADIO":
                 if (self.xbee_device):
                     self.xbee_device.close()
                 # Re-open the xbee device
@@ -312,7 +312,7 @@ class TelemetryHandler:
                 except Exception as e:
                     print(f"[DEBUG] Failed to Re-open XBee device: {e}")
                     self.valid_xbee_connection = False
-            case "REOPEN_PRESSURE":
+            case "*REOPEN_PRESSURE":
                 if (self.press_csv_file):
                     self.press_csv_file.close()
                 self.valid_pressure_file = False
@@ -324,7 +324,7 @@ class TelemetryHandler:
                 except Exception as e:
                     print(f"[DEBUG] Failed to Re-open Pressure CSV File: {e}")
                     self.valid_pressure_file = False
-            case "REOPEN_LOG":
+            case "*REOPEN_LOG":
                 if (self.log_csv_file):
                     self.log_csv_file.close()
                 self.valid_log_file = False
@@ -336,7 +336,7 @@ class TelemetryHandler:
                 except Exception as e:
                     print(f"[DEBUG] Failed to Re-open Log CSV File: {e}")
                     self.valid_log_file = False 
-            case "DEACTIVATE_PRESSURE":
+            case "*DEACTIVATE_PRESSURE":
                 if (self.press_csv_file):
                     self.press_csv_file.close()
                 self.valid_pressure_file = False

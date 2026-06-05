@@ -117,10 +117,10 @@ class App(tk.Tk):
 
         # Tack functions to those tabs 
         menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU, underline=0)
-        menu_file.add_command(label="Reopen XBEE Radio", command=lambda:self._send_command("REOPEN_RADIO"), font=FONT_MENU, underline=0)
-        menu_file.add_command(label="Reopen Pressure File", command=lambda:self._send_command("REOPEN_PRESSURE"), font=FONT_MENU, underline=0)
-        menu_file.add_command(label="Reopen Log File", command=lambda:self._send_command("REOPEN_LOG"), font=FONT_MENU, underline=0)
-        menu_file.add_command(label="Close Pressure File", command=lambda:self._send_command("DEACTIVATE_PRESSURE"), font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Reopen XBEE Radio", command=lambda:self._send_command("*REOPEN_RADIO"), font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Reopen Pressure File", command=lambda:self._send_command("*REOPEN_PRESSURE"), font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Reopen Log File", command=lambda:self._send_command("*REOPEN_LOG"), font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Close Pressure File", command=lambda:self._send_command("*DEACTIVATE_PRESSURE"), font=FONT_MENU, underline=0)
         menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
@@ -685,7 +685,9 @@ class App(tk.Tk):
         print("[DEBUG] GUI Sent:", msg)
 
         self.latest_sent_command = msg
-        self.label_cmd_last.config(text=self.latest_sent_command)
+        # ALL NON-FSW COMMANDS MUST START WITH AN ASTERISK TO PREVENT PRINTING
+        if msg[0] != '*':
+            self.label_cmd_last.config(text=self.latest_sent_command)
 
         return
 
