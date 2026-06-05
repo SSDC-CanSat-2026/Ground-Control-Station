@@ -10,8 +10,8 @@ if __name__ == "__main__":
     BAUDRATE = 9600
     LOG_FILE = "./test_out.csv"
     PRESSURE_FILE = "./test_in.csv"
-    #XBEE_MAC_ADDR = "0013A200427469EA" #CANSAT
-    XBEE_MAC_ADDR = "0013A200423D8F47" #TEST RADIO
+    XBEE_MAC_ADDR = "0013A200427469BF" #CANSAT
+    #XBEE_MAC_ADDR = "0013A200423D8F47" #TEST RADIO
     
     # Create the GUI and telemetry handler objects
     gui_app = app.App(TEAM_ID)

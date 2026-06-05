@@ -11,6 +11,7 @@ PORT_TH = 6000
 PORT_GUI = 6001
 ADDRESS_TH = (HOST, PORT_TH)
 ADDRESS_GUI = (HOST, PORT_GUI)
+DEFAULT_PRESSURE = 101325
 
 class Status(enum.Enum):
     DISABLED = enum.auto()
@@ -32,7 +33,7 @@ class TelemetryHandler:
         # Operation Variables
         self.is_running = True
         self.sim_status = Status.DISABLED
-        self.sim_disable_confirm = False
+        self.sim_disable_pending = False
         self.latest_pkt = False
         self.valid_xbee_connection = False
         self.valid_pressure_file = False
@@ -64,7 +65,7 @@ class TelemetryHandler:
             self.valid_pressure_file = True
             print(f"[DEBUG] Pressure CSV Open Successful: {self.press_csv_path}")
         except Exception as e:
-            print(f"[DEBUG] Failed to Open Pressure CSV File: {e}")
+            print(f"[DEBUG] Failed to Open Pressure CSV File, Defaulting to {DEFAULT_PRESSURE} Pascals: {e}")
             self.press_csv_file = None
             self.valid_pressure_file = False
 
@@ -183,20 +184,27 @@ class TelemetryHandler:
 
     def _simulation_loop(self):
 
-        while (self.sim_status == Status.ACTIVE):
-            if (self.valid_pressure_file):
-                temp_pressure_str = self.press_csv_file.readline()
-                temp_clean_str = temp_pressure_str.strip("\n")
-                if temp_pressure_str:
+        while (self.is_running == True):
+            # Write to the socket instead 
+            time.sleep(1)
+
+            while (self.sim_status == Status.ACTIVE):
+                if (self.valid_pressure_file):
+                    temp_pressure_str = self.press_csv_file.readline()
+                    temp_clean_str = temp_pressure_str.strip("\n")
+                    if temp_pressure_str:
+                        self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
+                        print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
+                        time.sleep(1)
+                    else:
+                        print("[DEBUG] End of Pressure File")
+                        time.sleep(1)
+                else:
+                    #print(f"[DEBUG] NO PRESSURE FILE OPEN")
+                    temp_clean_str = str(DEFAULT_PRESSURE)
                     self._send_packet(f"CMD,1075,SIMP,{temp_clean_str}")
                     print(f"[DEBUG] Pressure Packet: {temp_clean_str}")
                     time.sleep(1)
-                else:
-                    print("[DEBUG] End of Pressure File")
-                    time.sleep(1)
-            else:
-                print(f"[DEBUG] NO PRESSURE FILE OPEN")
-                time.sleep(1)
 
         return
 
@@ -257,7 +265,8 @@ class TelemetryHandler:
                     case _:
                         print("[ERROR] SIM STATUS IN INVALID STATE")
             case "SIM_DIS":
-                self.press_csv_file.seek(0) #Resets the the pressure file's position anytime simulation is disabled to allow reruns
+                if self.press_csv_file:
+                    self.press_csv_file.seek(0) #Resets the the pressure file's position anytime simulation is disabled to allow reruns
                 str = "CMD,1075,SIM,DISABLE"
                 self._send_packet(str)
                 self.sim_disable_pending = True
@@ -282,6 +291,7 @@ class TelemetryHandler:
             case "CAL":
                 str = "CMD,1075,CAL"
                 self._send_packet(str)
+            # Fake commands
             case "REOPEN_PRESSURE":
                 if (self.press_csv_file):
                     self.press_csv_file.close()
@@ -306,6 +316,11 @@ class TelemetryHandler:
                 except Exception as e:
                     print(f"[DEBUG] Failed to Re-open Log CSV File: {e}")
                     self.valid_log_file = False 
+            case "DEACTIVATE_PRESSURE":
+                if (self.press_csv_file):
+                    self.press_csv_file.close()
+                self.valid_pressure_file = False
+                print(f"[DEBUG] Closed Pressure CSV File, Defaulting to {DEFAULT_PRESSURE} Pascals")
             case _:
                 print("[DEBUG] INVALID COMMAND RECEIVED")
 

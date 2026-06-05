@@ -104,6 +104,7 @@ class App(tk.Tk):
         menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU, underline=0)
         menu_file.add_command(label="Reopen Pressure File", command=lambda:self._send_command("REOPEN_PRESSURE"), font=FONT_MENU, underline=0)
         menu_file.add_command(label="Reopen Log File", command=lambda:self._send_command("REOPEN_LOG"), font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Close Pressure File", command=lambda:self._send_command("DEACTIVATE_PRESSURE"), font=FONT_MENU, underline=0)
         menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
@@ -117,10 +118,10 @@ class App(tk.Tk):
         menu_commands.add_command(label="CALIBRATE", command=lambda:self._send_command("CAL"), font=FONT_MENU)
         menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU, underline=0)
 
-        # Create widgets
+        # Create widgets (Master Widgets)
         label1 = tk.Label(self, text="Single Data Info [DEBUG]", background="red", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
         label2 = tk.Label(self, text="2D Graphs Field [DEBUG]", background="blue", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
-        label3 = tk.Label(self, text="3D Graph Field [DEBUG]", background="yellow", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
+        label3 = tk.Label(self, text="3D Graph and Confirm Field [DEBUG]", background="yellow", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
         label4 = tk.Label(self, text="Logos Field [DEBUG]", background="lime", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
 
         # Scalar widgets (Mission Guide G8)
@@ -154,6 +155,11 @@ class App(tk.Tk):
         # Bind the FocusIn callback to the entry field to remove the feedback messages I print in there
         self.label_cmd_entry.bind("<FocusIn>", self._cmd_entry_enter_callback)
 
+        # Graph and Confirm
+        self.label_graph3D = tk.Label(label3, text="3D Graph Field [DEBUG]", background="orange", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
+        #label_stub_cmd_last = tk.Label(label1, text="Last Command:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        #self.label_cmd_last = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
+
         # Plot widgets (Mission Guide G7)
             # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER(R,P,Y), ROTATION_RATES(R,P,Y)
         self.fig, self.axs = plt.subplots(3, 3, figsize=(20, 15), constrained_layout=True)  # 16 graphs in a 4x4 grid
@@ -183,7 +189,7 @@ class App(tk.Tk):
         self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2], color='blue')
         self.axs_3d.view_init(azim=80)
         self.fig_3d.patch.set_facecolor(COLOR_BG_GRAY) # Light gray background
-        self.canvas_3d = FigureCanvasTkAgg(self.fig_3d, master = label3)
+        self.canvas_3d = FigureCanvasTkAgg(self.fig_3d, master = self.label_graph3D)
         self.canvas_3d.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
 
         # Load UF gator logo image data and create widget for it
@@ -279,6 +285,8 @@ class App(tk.Tk):
             # Logo labels
         label_gators_logo.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         label_ssdc_logo.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
+            # Bottom Right Labels
+        self.label_graph3D.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
 
         #FIXME: Move the graph and 3d graph grid attachments down here
 
