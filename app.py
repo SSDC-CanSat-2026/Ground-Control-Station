@@ -119,6 +119,74 @@ class App(tk.Tk):
         menu_commands.add_command(label="CALIBRATE", command=lambda:self._send_command("CAL"), font=FONT_MENU)
         menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU, underline=0)
 
+        # Create the sub menu bar for the mech commands
+        menu_mech_commands = tk.Menu(menu_commands, tearoff=False)
+        # Create the tabs for the mech commands
+        menu_commands.add_cascade(label="MECH COMMAND(S)", menu=menu_mech_commands, font=FONT_MENU, underline=0)
+        
+        # Create the sub sub menu bar(s) for the devices
+        menu_servo0_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_servo1_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_servo2_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_servo3_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_servo4_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_egg_commands  = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_release_commands  = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_guidance_commands  = tk.Menu(menu_mech_commands, tearoff=False)
+        # Create the tabs for the devices in the mech commands menu
+        menu_mech_commands.add_cascade(label="SERVO0", menu=menu_servo0_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="SERVO1", menu=menu_servo1_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="SERVO2", menu=menu_servo2_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="SERVO3", menu=menu_servo3_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="SERVO4", menu=menu_servo4_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="EGG", menu=menu_egg_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="RELEASE", menu=menu_release_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="GUIDANCE", menu=menu_guidance_commands, font=FONT_MENU, underline=0)
+        # Tack functions to those device menubar(s)
+            # Servo 0
+        menu_servo0_commands.add_command(label="0°", command=lambda:self._send_command("MEC,SERVO0,0"), font=FONT_MENU)
+        menu_servo0_commands.add_command(label="30°", command=lambda:self._send_command("MEC,SERVO0,30"), font=FONT_MENU)
+        menu_servo0_commands.add_command(label="45°", command=lambda:self._send_command("MEC,SERVO0,45"), font=FONT_MENU)
+        menu_servo0_commands.add_command(label="60°", command=lambda:self._send_command("MEC,SERVO0,60"), font=FONT_MENU)
+        menu_servo0_commands.add_command(label="90°", command=lambda:self._send_command("MEC,SERVO0,90"), font=FONT_MENU)
+        menu_servo0_commands.add_command(label="180°", command=lambda:self._send_command("MEC,SERVO0,180"), font=FONT_MENU)
+            # Servo 1
+        menu_servo1_commands.add_command(label="0°", command=lambda:self._send_command("MEC,SERVO1,0"), font=FONT_MENU)
+        menu_servo1_commands.add_command(label="30°", command=lambda:self._send_command("MEC,SERVO1,30"), font=FONT_MENU)
+        menu_servo1_commands.add_command(label="45°", command=lambda:self._send_command("MEC,SERVO1,45"), font=FONT_MENU)
+        menu_servo1_commands.add_command(label="60°", command=lambda:self._send_command("MEC,SERVO1,60"), font=FONT_MENU)
+        menu_servo1_commands.add_command(label="90°", command=lambda:self._send_command("MEC,SERVO1,90"), font=FONT_MENU)
+        menu_servo1_commands.add_command(label="180°", command=lambda:self._send_command("MEC,SERVO1,180"), font=FONT_MENU)
+            # Servo 2
+        menu_servo2_commands.add_command(label="0°", command=lambda:self._send_command("MEC,SERVO2,0"), font=FONT_MENU)
+        menu_servo2_commands.add_command(label="30°", command=lambda:self._send_command("MEC,SERVO2,30"), font=FONT_MENU)
+        menu_servo2_commands.add_command(label="45°", command=lambda:self._send_command("MEC,SERVO2,45"), font=FONT_MENU)
+        menu_servo2_commands.add_command(label="60°", command=lambda:self._send_command("MEC,SERVO2,60"), font=FONT_MENU)
+        menu_servo2_commands.add_command(label="90°", command=lambda:self._send_command("MEC,SERVO2,90"), font=FONT_MENU)
+        menu_servo2_commands.add_command(label="180°", command=lambda:self._send_command("MEC,SERVO2,180"), font=FONT_MENU)
+            # Servo 3
+        menu_servo3_commands.add_command(label="0°", command=lambda:self._send_command("MEC,SERVO3,0"), font=FONT_MENU)
+        menu_servo3_commands.add_command(label="30°", command=lambda:self._send_command("MEC,SERVO3,30"), font=FONT_MENU)
+        menu_servo3_commands.add_command(label="45°", command=lambda:self._send_command("MEC,SERVO3,45"), font=FONT_MENU)
+        menu_servo3_commands.add_command(label="60°", command=lambda:self._send_command("MEC,SERVO3,60"), font=FONT_MENU)
+        menu_servo3_commands.add_command(label="90°", command=lambda:self._send_command("MEC,SERVO3,90"), font=FONT_MENU)
+        menu_servo3_commands.add_command(label="180°", command=lambda:self._send_command("MEC,SERVO3,180"), font=FONT_MENU)
+            # Servo 4
+        menu_servo4_commands.add_command(label="0°", command=lambda:self._send_command("MEC,SERVO4,0"), font=FONT_MENU)
+        menu_servo4_commands.add_command(label="30°", command=lambda:self._send_command("MEC,SERVO4,30"), font=FONT_MENU)
+        menu_servo4_commands.add_command(label="45°", command=lambda:self._send_command("MEC,SERVO4,45"), font=FONT_MENU)
+        menu_servo4_commands.add_command(label="60°", command=lambda:self._send_command("MEC,SERVO4,60"), font=FONT_MENU)
+        menu_servo4_commands.add_command(label="90°", command=lambda:self._send_command("MEC,SERVO4,90"), font=FONT_MENU)
+        menu_servo4_commands.add_command(label="180°", command=lambda:self._send_command("MEC,SERVO4,180"), font=FONT_MENU)
+            # Egg
+        menu_egg_commands.add_command(label="ON",command=lambda:self._send_command("MEC,EGG,ON"), font=FONT_MENU)
+        menu_egg_commands.add_command(label="OFF",command=lambda:self._send_command("MEC,EGG,OFF"), font=FONT_MENU)
+            # Release
+        menu_release_commands.add_command(label="ON",command=lambda:self._send_command("MEC,RELEASE,ON"), font=FONT_MENU)
+        menu_release_commands.add_command(label="OFF",command=lambda:self._send_command("MEC,RELEASE,OFF"), font=FONT_MENU)
+            # Guidance
+        menu_guidance_commands.add_command(label="LEFT",command=lambda:self._send_command("MEC,GUIDANCE,LEFT"), font=FONT_MENU)
+        menu_guidance_commands.add_command(label="RIGHT",command=lambda:self._send_command("MEC,GUIDANCE,RIGHT"), font=FONT_MENU)
         # Create widgets (Master Widgets)
         label1 = tk.Label(self, text="Single Data Info [DEBUG]", background="red", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
         label2 = tk.Label(self, text="2D Graphs Field [DEBUG]", background="blue", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
@@ -360,6 +428,8 @@ class App(tk.Tk):
         self.focus_force()
 
         cmd_str = self.label_cmd_entry.get()
+        fields = cmd_str.split(',')
+        cmd_field = fields[0]
         self.label_cmd_entry.delete(0, tk.END)
 
         if self.int_cmd_entry_state == 1:
@@ -367,7 +437,7 @@ class App(tk.Tk):
             self.label_cmd_entry.delete(0, tk.END)
             self.label_cmd_entry.config(fg="black")
         else:
-            match(cmd_str):
+            match(cmd_field):
                 case "CX_ON":
                     self._send_command("CX_ON")
                     self.int_cmd_entry_state = 1
@@ -408,6 +478,16 @@ class App(tk.Tk):
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="green")
                     self.label_cmd_entry.insert(0, "COMMAND SENT")
+                case "MEC":
+                    if len(fields) >= 3:
+                        self._send_command(f"{cmd_str}")
+                        self.int_cmd_entry_state = 1
+                        self.label_cmd_entry.config(fg="green")
+                        self.label_cmd_entry.insert(0, "COMMAND SENT")
+                    else:
+                        self.int_cmd_entry_state = 1
+                        self.label_cmd_entry.config(fg="red")
+                        self.label_cmd_entry.insert(0, "INVALID COMMAND")
                 case _:
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="red")

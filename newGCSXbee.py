@@ -211,7 +211,9 @@ class TelemetryHandler:
     def _handle_command(self, cmd):
 
         str = "[DEBUG] DUMMY COMMAND PACKET"
-        match (cmd):
+        fields = cmd.split(",")
+        cmd_field = fields[0]
+        match (cmd_field):
             case "CX_ON":
                 str = "CMD,1075,CX,ON"
                 self._send_packet(str)
@@ -291,6 +293,13 @@ class TelemetryHandler:
             case "CAL":
                 str = "CMD,1075,CAL"
                 self._send_packet(str)
+            case "MEC":
+                if len(fields) >= 3:
+                    str = f"CMD,1075,MEC,{fields[1]},{fields[2]}"
+                    #print(f"[DEBUG] MECH COMMAND: {fields}")
+                    self._send_packet(str)
+                else:
+                    print("[ERROR] INVALID MECH FORMAT RECEIVED")
             # Fake commands
             case "REOPEN_PRESSURE":
                 if (self.press_csv_file):
