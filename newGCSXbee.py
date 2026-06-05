@@ -70,7 +70,7 @@ class TelemetryHandler:
 
         # Open the log file
         try:
-            self.log_csv_file = open(self.log_csv_path,'wta')
+            self.log_csv_file = open(self.log_csv_path,'ta')
             self.valid_log_file = True
             print(f"[DEBUG] Log CSV Open Successful: {self.log_csv_path}")
         except Exception as e:
@@ -300,7 +300,7 @@ class TelemetryHandler:
                 self.valid_log_file = False
                 # Re-open the log file
                 try:
-                    self.log_csv_file = open(self.log_csv_path,'wta')
+                    self.log_csv_file = open(self.log_csv_path,'ta')
                     self.valid_log_file = True
                     print(f"[DEBUG] Log CSV Re-open Successful: {self.log_csv_path}")
                 except Exception as e:
