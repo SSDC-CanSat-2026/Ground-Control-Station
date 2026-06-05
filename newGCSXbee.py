@@ -79,9 +79,11 @@ class TelemetryHandler:
 
         # Open the log file
         try:
-            self.log_csv_file = open(self.log_csv_path,"a", encoding="utf-8")
+            self.log_csv_file = open(self.log_csv_path,"w", encoding="utf-8")
             self.valid_log_file = True
             print(f"[DEBUG] Log CSV Open Successful: {self.log_csv_path}")
+            self.log_csv_file.write(f"TEAM_ID,MISSION_TIME,PACKET_COUNT,MODE,STATE,ALTITUDE,TEMPERATURE,PRESSURE,VOLTAGE,CURRENT,GYRO_R,GYRO_P,GYRO_Y,ACCEL_R,ACCEL_P,ACCEL_Y,GPS_TIME,GPS_ALTITUDE,GPS_LATITUDE,GPS_LONGITUDE,GPS_SATS,CMD_ECHO,,\n")
+            self.log_csv_file.flush()
         except Exception as e:
             print(f"[DEBUG] Failed to Open Log CSV File: {e}")
             self.log_csv_file = None
@@ -341,9 +343,11 @@ class TelemetryHandler:
                 self.valid_log_file = False
                 # Re-open the log file
                 try:
-                    self.log_csv_file = open(self.log_csv_path,"a", encoding="utf-8")
+                    self.log_csv_file = open(self.log_csv_path,"w", encoding="utf-8")
                     self.valid_log_file = True
                     print(f"[DEBUG] Log CSV Re-open Successful: {self.log_csv_path}")
+                    self.log_csv_file.write(f"TEAM_ID,MISSION_TIME,PACKET_COUNT,MODE,STATE,ALTITUDE,TEMPERATURE,PRESSURE,VOLTAGE,CURRENT,GYRO_R,GYRO_P,GYRO_Y,ACCEL_R,ACCEL_P,ACCEL_Y,GPS_TIME,GPS_ALTITUDE,GPS_LATITUDE,GPS_LONGITUDE,GPS_SATS,CMD_ECHO,,\n")
+                    self.log_csv_file.flush()
                 except Exception as e:
                     print(f"[DEBUG] Failed to Re-open Log CSV File: {e}")
                     self.valid_log_file = False 
