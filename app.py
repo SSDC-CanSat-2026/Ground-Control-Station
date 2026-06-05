@@ -327,7 +327,7 @@ class App(tk.Tk):
     def _menuFunc_about(self): #TODO: Fill in text here with proper info
         messagebox.showinfo(
             "About This Application",
-            "This is a sample Tkinter application.\n\nVersion: 1.0\nAuthor: CANSAT"
+            "🚀Space Systems Design Club\nGround Control Station Application.\n\nVersion: 1.0\nAuthors: Phoenix Cushman & Anthony Torrell"
         )
         return
 
