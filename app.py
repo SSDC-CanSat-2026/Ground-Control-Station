@@ -68,6 +68,7 @@ class App(tk.Tk):
         self.int_cmd_entry_state = 0
         self.my_telemetry_handler = None
         self.simulation_active = False
+        self.latest_sent_command = 'ROLL_OVER'
 
         # Create the main window
         super().__init__()
@@ -155,10 +156,10 @@ class App(tk.Tk):
         # Bind the FocusIn callback to the entry field to remove the feedback messages I print in there
         self.label_cmd_entry.bind("<FocusIn>", self._cmd_entry_enter_callback)
 
-        # Graph and Confirm
+        # Graph and Command Confirm widgets
         self.label_graph3D = tk.Label(label3, text="3D Graph Field [DEBUG]", background="orange", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
-        #label_stub_cmd_last = tk.Label(label1, text="Last Command:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
-        #self.label_cmd_last = tk.Label(label1, text=self.int_packet_loss, font=FONT_TEXT_BOLD, anchor="center")
+        label_stub_cmd_last = tk.Label(label3, text="Last Command:", font=FONT_TEXT_BOLD_UNDER, fg=COLOR_FADED_TEXT, bg=COLOR_BG_GRAY, anchor="center")
+        self.label_cmd_last = tk.Label(label3, text=self.latest_sent_command, font=FONT_TEXT_BOLD, anchor="center")
 
         # Plot widgets (Mission Guide G7)
             # ALTITUDE, BATT_VOLTAGE, BATT_CURRENT, ACCELEROMETER(R,P,Y), ROTATION_RATES(R,P,Y)
@@ -166,16 +167,11 @@ class App(tk.Tk):
         self.fig.patch.set_facecolor(COLOR_BG_GRAY)
         self.canvas = FigureCanvasTkAgg(self.fig, master=label2)
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
-
         self.str_plot_names = ["Altitude (m)", "Battery Voltage (V)", "Battery Current (A)", "Accel_R (deg/s²)", "Accel_P (deg/s²)", "Accel_Y (deg/s²)", "Gyro_R (deg/sec)", "Gyro_P (deg/sec)", "Gyro_Y (deg/sec)"]
         self.graphs_lines = list([None for i in range(0,3*3)])
         for i in range(0,3):
             for j in range(0,3):
                 self.axs[i,j].set_title(self.str_plot_names[i*3+j], fontsize=14) # FIXME: Find a way to set the font to 14pt
-
-        #FIXME: Remove later
-        # 3D Graph
-            # Data arrays for the 3D plot
 
             # Create all the variables
         self.fig_3d = plt.figure()
@@ -190,7 +186,6 @@ class App(tk.Tk):
         self.axs_3d.view_init(azim=80)
         self.fig_3d.patch.set_facecolor(COLOR_BG_GRAY) # Light gray background
         self.canvas_3d = FigureCanvasTkAgg(self.fig_3d, master = self.label_graph3D)
-        self.canvas_3d.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
 
         # Load UF gator logo image data and create widget for it
         imageFile_gators = Image.open("Images/Gators Logo.png")
@@ -245,6 +240,11 @@ class App(tk.Tk):
         label_cmd_frame.columnconfigure(2, weight=1, uniform='a')
         label_cmd_frame.columnconfigure(3, weight=1, uniform='a')
         label_cmd_frame.columnconfigure(4, weight=1, uniform='a')
+            # Label 3 (3d Graph and CMD Confirm field) Layout
+        label3.rowconfigure(0, weight=7, uniform='a')
+        label3.rowconfigure(1, weight=1, uniform='a')
+        label3.rowconfigure(2, weight=1, uniform='a')
+        label3.columnconfigure(0, weight=1, uniform='a')
             # Label 4 (Logos) Layout
         label4.rowconfigure(0, weight=1, uniform='a')
         label4.columnconfigure(0, weight=1, uniform='a')
@@ -287,6 +287,12 @@ class App(tk.Tk):
         label_ssdc_logo.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
             # Bottom Right Labels
         self.label_graph3D.grid(row = 0, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
+        self.canvas_3d.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True) # Sets automatic resizing of the canvas
+                # Stubs
+        label_stub_cmd_last.grid(row = 1, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
+                # Values
+        self.label_cmd_last.grid(row = 2, column = 0, columnspan = 1, rowspan=1, sticky="nsew")
+
 
         #FIXME: Move the graph and 3d graph grid attachments down here
 
@@ -566,40 +572,9 @@ class App(tk.Tk):
         
         print("[DEBUG] GUI Sent:", msg)
 
-        ''' #TODO: Put this back after the new telemetry handler is finished
-        print(f"[DEBUG] Command Sent: {cmd}")
+        self.latest_sent_command = msg
+        self.label_cmd_last.config(text=self.latest_sent_command)
 
-        if self.my_telemetry_handler == None:
-            # No telemetry handler linked so ignore
-            print("[DEBUG] No TelemetryHandler linked")
-            return
-        else:
-
-            if cmd != "":
-                try:
-                    match (cmd):
-                        case "CXON":
-                            self.my_telemetry_handler.send_command("CX ON")
-                            address_out = ('localhost', 6001)
-                            self.sock_out.connect(address_out)
-                            msg = "CX ON"
-                            self.sock_out.send(msg.encode('utf-8'))
-                        case "CXOFF": self.my_telemetry_handler.send_command("CX OFF")
-                        case _: print("[DEBUG] YOLO") #FIXME: Fill in the other commands
-                except Exception as e:
-                    print(f"ERROR [SEND COMMAND] : Error sending command {e}")
-
-            # Labels to track where in the simulation activation sequence the Can is in.
-            # These labels are based on the CMD ECHO of the received packets to ensure that the Can received the commands.
-            if self.my_telemetry_handler.sim_enable:
-                if self.my_telemetry_handler.sim_activate:
-                    self.simulation_active = True
-                else:
-                    self.simulation_active = False
-            else:
-                self.simulation_active = False
-
-        '''
         return
 
     def _menuFunc_reset_3d(self):
