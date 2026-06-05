@@ -409,6 +409,7 @@ class App(tk.Tk):
         imageFile_ssdc_icon = Image.open("Images/SSDC Icon.png")
         iconTk_ssdc = ImageTk.PhotoImage(imageFile_ssdc_icon)
         self.iconphoto(False, iconTk_ssdc)
+        self.wm_iconphoto(True, iconTk_ssdc)
 
         return
 
