@@ -9,6 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 import socket
 import telemetryPacket
+import platform
 
 ########################## Global Variables ##########################
 
@@ -80,6 +81,12 @@ class App(tk.Tk):
         height = self.winfo_screenheight()
         self.geometry("%dx%d" % (width/2, height)) # Sets the dimensions of the window to those screen dimensions
 
+        # Set the window to default to maximized
+        if platform.system() == "Linux":
+            self.attributes('-zoomed', True)
+        else:
+            self.state('zoomed')
+
         # Create a toggle function for fullscreen
         def toggle_fullscreen_func(event=None):
             # Check the current status and invert it
@@ -110,6 +117,7 @@ class App(tk.Tk):
 
         # Tack functions to those tabs 
         menu_file.add_command(label="Exit", command=self._menuFunc_exit, font=FONT_MENU, underline=0)
+        menu_file.add_command(label="Reopen XBEE Radio", command=lambda:self._send_command("REOPEN_RADIO"), font=FONT_MENU, underline=0)
         menu_file.add_command(label="Reopen Pressure File", command=lambda:self._send_command("REOPEN_PRESSURE"), font=FONT_MENU, underline=0)
         menu_file.add_command(label="Reopen Log File", command=lambda:self._send_command("REOPEN_LOG"), font=FONT_MENU, underline=0)
         menu_file.add_command(label="Close Pressure File", command=lambda:self._send_command("DEACTIVATE_PRESSURE"), font=FONT_MENU, underline=0)
