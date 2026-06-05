@@ -124,6 +124,7 @@ class App(tk.Tk):
         menu_options.add_command(label="Reset 3D Graph Rotation", command=self._menuFunc_reset_3d, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
+        menu_food.add_command(label="HotDog", command=self._menuFunc_dog, font=FONT_MENU, underline=0)
         menu_commands.add_command(label="CX ON", command=lambda:self._send_command("CX_ON"), font=FONT_MENU) # TODO: Extend the text with a mini description
         menu_commands.add_command(label="CX OFF", command=lambda:self._send_command("CX_OFF"), font=FONT_MENU)
         menu_commands.add_command(label="SET TIME UTC", command=lambda:self._send_command("ST_UTC"), font=FONT_MENU)
@@ -259,6 +260,7 @@ class App(tk.Tk):
         for i in range(0,3):
             for j in range(0,3):
                 self.axs[i,j].set_title(self.str_plot_names[i*3+j], fontsize=14) # FIXME: Find a way to set the font to 14pt
+                self.axs[i,j].tick_params(labelsize=14)
 
             # Create all the variables
         self.fig_3d = plt.figure()
@@ -268,6 +270,7 @@ class App(tk.Tk):
         self.axs_3d.set_xlabel('Lat. (deg)', fontsize=14) # X-axis
         self.axs_3d.set_ylabel('Long. (deg)', fontsize=14) # Y-axis
         self.axs_3d.set_zlabel('Alt. (m)', fontsize=14) # Z-axis
+        self.axs_3d.tick_params(labelsize=14)
         self.axs_3d.set_facecolor(COLOR_BG_GRAY)
         self.axs_3d.plot(self.gps_data[0], self.gps_data[1], self.gps_data[2], color='blue')
         self.axs_3d.view_init(azim=80)
@@ -443,6 +446,13 @@ class App(tk.Tk):
         messagebox.showinfo(
             "Bon Appétit",
             "🍟"
+        )
+        return
+
+    def _menuFunc_dog(self):
+        messagebox.showinfo(
+            "Bon Appétit",
+            "🌭"
         )
         return
 
@@ -638,6 +648,7 @@ class App(tk.Tk):
                     self.graphs_lines[i*3+j], = self.axs[i,j].plot(self.graph_data[i*3+j])
                 else:
                     self.graphs_lines[i*3+j].set_data(self.graph_domain, self.graph_data[i*3+j])
+                    self.axs[i,j].tick_params(labelsize=14)
                     self.axs[i,j].relim()
                     self.axs[i,j].autoscale_view()
         if (self.graph3d_line == None):
