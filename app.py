@@ -146,9 +146,12 @@ class App(tk.Tk):
         menu_servo2_commands = tk.Menu(menu_mech_commands, tearoff=False)
         menu_servo3_commands = tk.Menu(menu_mech_commands, tearoff=False)
         menu_servo4_commands = tk.Menu(menu_mech_commands, tearoff=False)
-        menu_egg_commands  = tk.Menu(menu_mech_commands, tearoff=False)
-        menu_release_commands  = tk.Menu(menu_mech_commands, tearoff=False)
-        menu_guidance_commands  = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_egg_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_release_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_guidance_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_camera0_commands = tk.Menu(menu_mech_commands, tearoff=False)
+        menu_camera1_commands = tk.Menu(menu_mech_commands, tearoff=False)
+
         # Create the tabs for the devices in the mech commands menu
         menu_mech_commands.add_cascade(label="SERVO0", menu=menu_servo0_commands, font=FONT_MENU, underline=5)
         menu_mech_commands.add_cascade(label="SERVO1", menu=menu_servo1_commands, font=FONT_MENU, underline=5)
@@ -158,6 +161,9 @@ class App(tk.Tk):
         menu_mech_commands.add_cascade(label="EGG", menu=menu_egg_commands, font=FONT_MENU, underline=0)
         menu_mech_commands.add_cascade(label="RELEASE", menu=menu_release_commands, font=FONT_MENU, underline=0)
         menu_mech_commands.add_cascade(label="GUIDANCE", menu=menu_guidance_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="CAM0", menu=menu_camera0_commands, font=FONT_MENU, underline=0)
+        menu_mech_commands.add_cascade(label="CAM1", menu=menu_camera1_commands, font=FONT_MENU, underline=0)
+        
         # Tack functions to those device menubar(s)
             # Servo 0
         menu_servo0_commands.add_command(label="0°", command=lambda:self._send_command("MEC,SERVO0,0"), font=FONT_MENU)
@@ -203,6 +209,13 @@ class App(tk.Tk):
             # Guidance
         menu_guidance_commands.add_command(label="LEFT",command=lambda:self._send_command("MEC,GUIDANCE,LEFT"), font=FONT_MENU)
         menu_guidance_commands.add_command(label="RIGHT",command=lambda:self._send_command("MEC,GUIDANCE,RIGHT"), font=FONT_MENU)
+            # Camera 0
+        menu_camera0_commands.add_command(label="ON",command=lambda:self._send_command("MEC,CAM0,ON"), font=FONT_MENU)
+        menu_camera0_commands.add_command(label="OFF",command=lambda:self._send_command("MEC,CAM0,OFF"), font=FONT_MENU)
+            # Camera 1
+        menu_camera1_commands.add_command(label="ON",command=lambda:self._send_command("MEC,CAM1,ON"), font=FONT_MENU)
+        menu_camera1_commands.add_command(label="OFF",command=lambda:self._send_command("MEC,CAM1,OFF"), font=FONT_MENU)
+        
         # Create widgets (Master Widgets)
         label1 = tk.Label(self, text="Single Data Info [DEBUG]", background="red", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
         label2 = tk.Label(self, text="2D Graphs Field [DEBUG]", background="blue", font=FONT_DEBUG, highlightthickness=0, borderwidth=0)
