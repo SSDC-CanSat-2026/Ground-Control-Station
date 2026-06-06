@@ -109,7 +109,7 @@ class App(tk.Tk):
         menu_help = tk.Menu(menubar, tearoff=False)
 
         # Create tabs from those objects
-        menubar.add_cascade(label="File", menu=menu_file, font=FONT_MENU, underline=0) # TODO: Add a view csv button
+        menubar.add_cascade(label="File", menu=menu_file, font=FONT_MENU, underline=0)
         menubar.add_cascade(label="Options", menu=menu_options, font=FONT_MENU, underline=0)
         menubar.add_cascade(label="Food", menu=menu_food, font=FONT_MENU, underline=3)
         menubar.add_cascade(label="CMD", menu=menu_commands, font=FONT_MENU, underline=0)
@@ -125,7 +125,7 @@ class App(tk.Tk):
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
         menu_food.add_command(label="HotDog", command=self._menuFunc_dog, font=FONT_MENU, underline=0)
-        menu_commands.add_command(label="CX ON", command=lambda:self._send_command("CX_ON"), font=FONT_MENU) # TODO: Extend the text with a mini description
+        menu_commands.add_command(label="CX ON", command=lambda:self._send_command("CX_ON"), font=FONT_MENU)
         menu_commands.add_command(label="CX OFF", command=lambda:self._send_command("CX_OFF"), font=FONT_MENU)
         menu_commands.add_command(label="SET TIME UTC", command=lambda:self._send_command("ST_UTC"), font=FONT_MENU)
         menu_commands.add_command(label="SET TIME GPS", command=lambda:self._send_command("ST_GPS"), font=FONT_MENU)
@@ -442,7 +442,7 @@ class App(tk.Tk):
         exit()
         return
 
-    def _menuFunc_about(self): #TODO: Fill in text here with proper info
+    def _menuFunc_about(self):
         messagebox.showinfo(
             "About This Application",
             "🚀Space Systems Design Club\nGround Control Station Application.\n\nVersion: 1.0\nAuthors: Phoenix Cushman & Anthony Torrell"
@@ -623,7 +623,6 @@ class App(tk.Tk):
         self._update_graphs_callback()
 
         # GPS Location
-        # FIXME: Put this back once we have good data to read
         self.label_gps_pos.config(text=f"{(float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE))}")
         self._insert_gps_data([float(self.latest_pkt.GPS_LATITUDE),float(self.latest_pkt.GPS_LONGITUDE),float(self.latest_pkt.GPS_ALTITUDE)])
 
@@ -680,7 +679,6 @@ class App(tk.Tk):
             self.axs_3d.set_ylim(min(self.gps_data[1])-10, max(self.gps_data[1])+10)
             self.axs_3d.set_zlim(min(self.gps_data[2])-10, max(self.gps_data[2])+10)
             self.axs_3d.autoscale_view(tight=True, scalex=True, scaley=True, scalez=True)
-        #FIXME: Put back
         self.canvas.draw()
         self.canvas_3d.draw()
         plt.draw()
