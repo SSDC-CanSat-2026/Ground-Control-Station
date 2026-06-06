@@ -306,6 +306,9 @@ class TelemetryHandler:
             case "CAL":
                 str = "CMD,1075,CAL"
                 self._send_packet(str)
+            case "GNC_ACT":
+                str = "CMD,1075,GNC_ACT,"
+                self._send_packet(str)
             case "MEC":
                 if len(fields) >= 3:
                     str = f"CMD,1075,MEC,{fields[1]},{fields[2]}"

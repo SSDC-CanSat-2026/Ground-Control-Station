@@ -133,6 +133,7 @@ class App(tk.Tk):
         menu_commands.add_command(label="SIM ACTIVATE", command=lambda:self._send_command("SIM_ACT"), font=FONT_MENU)
         menu_commands.add_command(label="SIM DISABLE", command=lambda:self._send_command("SIM_DIS"), font=FONT_MENU)
         menu_commands.add_command(label="CALIBRATE", command=lambda:self._send_command("CAL"), font=FONT_MENU)
+        menu_commands.add_command(label="GNC ACTIVATE", command=lambda:self._send_command("GNC_ACT"), font=FONT_MENU)
         menu_help.add_command(label="About", command=self._menuFunc_about, font=FONT_MENU, underline=0)
 
         # Create the sub menu bar for the mech commands
@@ -544,6 +545,11 @@ class App(tk.Tk):
                         self.int_cmd_entry_state = 1
                         self.label_cmd_entry.config(fg="red")
                         self.label_cmd_entry.insert(0, "INVALID COMMAND")
+                case "GNC_ACT":
+                    self._send_command("GNC_ACT")
+                    self.int_cmd_entry_state = 1
+                    self.label_cmd_entry.config(fg="green")
+                    self.label_cmd_entry.insert(0, "COMMAND SENT")
                 case _:
                     self.int_cmd_entry_state = 1
                     self.label_cmd_entry.config(fg="red")
