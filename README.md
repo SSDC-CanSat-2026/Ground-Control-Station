@@ -1,5 +1,5 @@
 # SSDC 2026 Ground Control Station 
-This is the repository for the University of FLorida's Space System Design Club Ground Control Station 2025-2026.
+This is the repository for the University of Florida's Space System Design Club Ground Control Station 2025-2026.
 
 # User WARNINGS
 - This repo is only intended for use with Linux and Unix Systems. Some of the features used by Tkinter for this app are not supported on Windows systems.
