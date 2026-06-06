@@ -125,6 +125,7 @@ class App(tk.Tk):
         menu_food.add_command(label="Burger", command=self._menuFunc_burger, font=FONT_MENU, underline=0)
         menu_food.add_command(label="Fries", command=self._menuFunc_fries, font=FONT_MENU, underline=0)
         menu_food.add_command(label="HotDog", command=self._menuFunc_dog, font=FONT_MENU, underline=0)
+        menu_food.add_command(label="Combo", command=self._menuFunc_combo, font=FONT_MENU, underline=0)
         menu_commands.add_command(label="CX ON", command=lambda:self._send_command("CX_ON"), font=FONT_MENU)
         menu_commands.add_command(label="CX OFF", command=lambda:self._send_command("CX_OFF"), font=FONT_MENU)
         menu_commands.add_command(label="SET TIME UTC", command=lambda:self._send_command("ST_UTC"), font=FONT_MENU)
@@ -470,6 +471,12 @@ class App(tk.Tk):
         )
         return
 
+    def _menuFunc_combo(self):
+        messagebox.showinfo(
+            "Bon Appétit",
+            "🍔🍟🥤"
+        )
+        return
 
     def _cmd_entry_enter_callback(self, event):
 
